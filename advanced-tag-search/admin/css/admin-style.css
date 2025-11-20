@@ -1,0 +1,39 @@
+/**
+ * Advanced Tag Search - Admin Styles
+ */
+
+.ats-quick-link-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.ats-quick-link-item input[type="text"] {
+    margin-right: 10px;
+}
+
+#ats-quick-links-container {
+    margin-bottom: 15px;
+}
+
+.ats-settings-section {
+    background: #fff;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.ats-settings-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+code {
+    background: #f0f0f1;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+}

@@ -1,0 +1,514 @@
+/**
+ * Advanced Tag Search - Styles
+ */
+
+:root {
+    --ats-primary-color: #A0616A;
+    --ats-secondary-color: #E8B4B8;
+    --ats-text-color: #333;
+    --ats-bg-color: #FFF;
+    --ats-overlay-color: rgba(0, 0, 0, 0.5);
+    --ats-border-radius: 50px;
+    --ats-modal-radius: 16px;
+    --ats-tag-radius: 20px;
+}
+/* 検索コンテナ */
+.ats-search-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+/* 検索タイトル */
+.ats-search-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ats-text-color);
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+}
+
+/* 検索ボックス */
+.ats-search-box {
+    display: flex;
+    align-items: center;
+    background: var(--ats-bg-color);
+    border-radius: var(--ats-border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 8px 8px 8px 24px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.3s ease;
+}
+
+.ats-search-box:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.ats-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: var(--ats-text-color);
+    background: transparent;
+    cursor: pointer;
+}
+
+.ats-search-input::placeholder {
+    color: #999;
+}
+
+.ats-search-button {
+    background: var(--ats-primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    color: white;
+}
+
+.ats-search-button:hover {
+    background: #8a5159;
+}
+
+/* クイックリンク */
+.ats-quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.ats-quick-link {
+    display: inline-block;
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--ats-primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ats-primary-color);
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.ats-quick-link:hover {
+    background: var(--ats-secondary-color);
+    color: var(--ats-primary-color);
+}
+
+/* モーダルオーバーレイ */
+.ats-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--ats-overlay-color);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* モーダル本体 */
+.ats-modal {
+    background: var(--ats-bg-color);
+    border-radius: var(--ats-modal-radius);
+    max-width: 700px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: slideUp 0.3s ease;
+    -webkit-overflow-scrolling: touch;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* モーダルヘッダー */
+.ats-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.ats-modal-title {
+    margin: 0;
+    font-size: 20px;
+    color: var(--ats-text-color);
+    font-weight: 600;
+}
+
+.ats-modal-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.ats-modal-close:hover {
+    color: var(--ats-text-color);
+}
+
+/* モーダルボディ */
+.ats-modal-body {
+    padding: 24px;
+}
+
+/* モーダルコンテンツ全体 */
+.ats-modal-content {
+    padding-bottom: 20px;
+}
+
+/* タグカテゴリー */
+.ats-tag-category {
+    margin-bottom: 32px;
+}
+
+.ats-tag-category:last-child {
+    margin-bottom: 0;
+}
+
+.ats-category-title {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 12px 0;
+    font-weight: 500;
+}
+
+/* タグリスト */
+.ats-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* タグボタン */
+.ats-tag {
+    background: #f5f5f5;
+    border: 1px solid transparent;
+    border-radius: var(--ats-tag-radius);
+    padding: 8px 16px;
+    font-size: 14px;
+    color: var(--ats-text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.ats-tag:hover {
+    background: #e8e8e8;
+}
+
+.ats-tag.selected {
+    background: var(--ats-secondary-color);
+    border-color: var(--ats-primary-color);
+    color: var(--ats-primary-color);
+    font-weight: 500;
+}
+
+/* モーダルフッター */
+.ats-modal-footer {
+    padding: 20px 24px 30px;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+    background: var(--ats-bg-color);
+}
+
+.ats-search-submit {
+    width: 100%;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: var(--ats-border-radius);
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.ats-search-submit:hover {
+    background: #1976D2;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.ats-search-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* レスポンシブ対応 */
+
+/* タブレット対応 (768px以下) */
+@media (max-width: 768px) {
+    .ats-search-container {
+        padding: 20px 16px;
+    }
+    
+    .ats-search-title {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .ats-modal {
+        max-height: 95vh;
+        margin: 10px;
+        border-radius: 12px;
+    }
+    
+    .ats-modal-header,
+    .ats-modal-body,
+    .ats-modal-footer {
+        padding: 16px;
+    }
+    
+    .ats-tag-category {
+        margin-bottom: 24px;
+    }
+    
+    .ats-quick-links {
+        gap: 8px;
+    }
+    
+    .ats-quick-link {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+    
+    .ats-tag {
+        font-size: 13px;
+        padding: 7px 14px;
+    }
+}
+
+/* スマホ対応 (480px以下) */
+@media (max-width: 480px) {
+    /* 検索コンテナ */
+    .ats-search-container {
+        padding: 15px 12px;
+    }
+    
+    .ats-search-title {
+        font-size: 18px;
+        margin-bottom: 14px;
+    }
+    
+    /* 検索ボックス */
+    .ats-search-box {
+        padding: 6px 6px 6px 16px;
+    }
+    
+    .ats-search-input {
+        font-size: 14px;
+    }
+    
+    .ats-search-button {
+        width: 40px;
+        height: 40px;
+    }
+    
+    /* モーダル */
+    .ats-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+    
+    .ats-modal {
+        max-height: 75vh;
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+        animation: slideUpMobile 0.3s ease;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    @keyframes slideUpMobile {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+    
+    /* モーダルヘッダー */
+    .ats-modal-header {
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        flex-shrink: 0;
+    }
+    
+    .ats-modal-title {
+        font-size: 17px;
+    }
+    
+    .ats-modal-close {
+        padding: 8px;
+    }
+    
+    /* モーダルボディ */
+    .ats-modal-body {
+        padding: 16px 12px;
+    }
+    
+    /* タグカテゴリー */
+    .ats-tag-category {
+        margin-bottom: 20px;
+    }
+    
+    .ats-category-title {
+        font-size: 13px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    
+    /* タグリスト */
+    .ats-tag-list {
+        gap: 6px;
+    }
+    
+    .ats-tag {
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: 16px;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* モーダルフッター */
+    .ats-modal-footer {
+        padding: 20px 16px 30px;
+        border-top: 1px solid #e0e0e0;
+        flex-shrink: 0;
+        background: var(--ats-bg-color);
+    }
+    
+    .ats-search-submit {
+        padding: 16px 24px;
+        font-size: 15px;
+        font-weight: 700;
+    }
+    
+    /* クイックリンク */
+    .ats-quick-links {
+        gap: 6px;
+        margin-top: 16px;
+    }
+    
+    .ats-quick-link {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+
+/* 小型スマホ対応 (360px以下) */
+@media (max-width: 360px) {
+    .ats-search-input {
+        font-size: 13px;
+    }
+    
+    .ats-modal-title {
+        font-size: 16px;
+    }
+    
+    .ats-tag {
+        font-size: 12px;
+        padding: 7px 12px;
+    }
+    
+    .ats-search-submit {
+        font-size: 14px;
+        padding: 14px 20px;
+    }
+}
+
+/* タッチデバイス用の最適化 */
+@media (hover: none) and (pointer: coarse) {
+    /* タップ領域を広げる */
+    .ats-tag {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .ats-search-button,
+    .ats-modal-close {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* タップ時のハイライトを無効化 */
+    .ats-tag,
+    .ats-search-button,
+    .ats-modal-close,
+    .ats-search-submit,
+    .ats-quick-link {
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+    }
+    
+    /* タップ時のアクティブ状態 */
+    .ats-tag:active {
+        transform: scale(0.95);
+    }
+    
+    .ats-search-submit:active {
+        transform: scale(0.98);
+    }
+}
+
+/* スクロールバーのスタイル */
+.ats-modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ats-modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.ats-modal-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.ats-modal-body::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
