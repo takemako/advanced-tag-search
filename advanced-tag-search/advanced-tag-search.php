@@ -3,7 +3,7 @@
  * Plugin Name: Advanced Tag Search
  * Plugin URI: https://example.com/advanced-tag-search
  * Description: Kawagoe.funのような高度な検索機能を提供するプラグイン。タグやカテゴリーでの絞り込み検索が可能です。
- * Version: 1.4.1
+ * Version: 1.5.0
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * Author: Your Name
@@ -105,6 +105,9 @@ class Advanced_Tag_Search {
             ATS_VERSION
         );
         
+        // カスタム色を適用
+        $this->add_custom_colors();
+        
         // JavaScript
         wp_enqueue_script(
             'ats-modal',
@@ -123,6 +126,46 @@ class Advanced_Tag_Search {
     }
     
     /**
+     * カスタム色をCSSとして出力
+     */
+    private function add_custom_colors() {
+        $settings = get_option('ats_settings', array());
+        $icon_color = $settings['search_icon_color'] ?? '#666666';
+        $button_color = $settings['button_color'] ?? '#2196F3';
+        
+        $custom_css = "
+            <style type='text/css'>
+                /* 虹眼鏡アイコンの色 */
+                .ats-search-icon {
+                    stroke: {$icon_color} !important;
+                }
+                
+                /* 検索ボタンの色 */
+                .ats-search-button {
+                    background: {$button_color} !important;
+                    border-color: {$button_color} !important;
+                }
+                .ats-search-button:hover {
+                    background: {$button_color} !important;
+                    opacity: 0.9;
+                }
+                
+                /* モーダル内の絞り込みボタンの色 */
+                .ats-search-submit {
+                    background: {$button_color} !important;
+                    border-color: {$button_color} !important;
+                }
+                .ats-search-submit:hover {
+                    background: {$button_color} !important;
+                    opacity: 0.9;
+                }
+            </style>
+        ";
+        
+        echo $custom_css;
+    }
+    
+    /**
      * 管理画面用スクリプト・スタイルの読み込み
      */
     public function enqueue_admin_scripts($hook) {
@@ -130,12 +173,23 @@ class Advanced_Tag_Search {
             return;
         }
         
+        // WordPressのカラーピッカーを読み込む
+        wp_enqueue_style('wp-color-picker');
+        wp_enqueue_script('wp-color-picker');
+        
         wp_enqueue_style(
             'ats-admin-style',
             ATS_PLUGIN_URL . 'admin/css/admin-style.css',
-            array(),
+            array('wp-color-picker'),
             ATS_VERSION
         );
+        
+        // カラーピッカーの初期化
+        wp_add_inline_script('wp-color-picker', '
+            jQuery(document).ready(function($) {
+                $(".ats-color-picker").wpColorPicker();
+            });
+        ');
     }
     
     /**

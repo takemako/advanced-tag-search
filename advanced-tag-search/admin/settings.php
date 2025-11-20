@@ -91,6 +91,48 @@ function ats_render_settings_page() {
                 </tr>
             </table>
             
+            <h2><?php _e('色設定', 'advanced-tag-search'); ?></h2>
+            <p><?php _e('検索ボタンとアイコンの色をカスタマイズできます。', 'advanced-tag-search'); ?></p>
+            
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="ats_search_icon_color">
+                            <?php _e('虹眼鏡アイコンの色', 'advanced-tag-search'); ?>
+                        </label>
+                    </th>
+                    <td>
+                        <input type="text" 
+                               id="ats_search_icon_color" 
+                               name="ats_search_icon_color" 
+                               value="<?php echo esc_attr($settings['search_icon_color'] ?? '#666666'); ?>" 
+                               class="ats-color-picker">
+                        <p class="description">
+                            <?php _e('検索窓の虹眼鏡アイコンの色を設定します。（デフォルト: #666666）', 'advanced-tag-search'); ?>
+                        </p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">
+                        <label for="ats_button_color">
+                            <?php _e('検索ボタンの色', 'advanced-tag-search'); ?>
+                        </label>
+                    </th>
+                    <td>
+                        <input type="text" 
+                               id="ats_button_color" 
+                               name="ats_button_color" 
+                               value="<?php echo esc_attr($settings['button_color'] ?? '#2196F3'); ?>" 
+                               class="ats-color-picker">
+                        <p class="description">
+                            <?php _e('モーダル内の「絞り込む」ボタンの色を設定します。（デフォルト: #2196F3）', 'advanced-tag-search'); ?>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            
+            
             <h2><?php _e('タグカテゴリー設定', 'advanced-tag-search'); ?></h2>
             <p><?php _e('各カテゴリーのタグをカンマ区切りで入力してください。', 'advanced-tag-search'); ?></p>
             
@@ -249,6 +291,8 @@ function ats_save_settings() {
         'search_title' => sanitize_text_field($_POST['ats_search_title'] ?? ''),
         'placeholder' => sanitize_text_field($_POST['ats_placeholder'] ?? ''),
         'modal_title' => sanitize_text_field($_POST['ats_modal_title'] ?? ''),
+        'search_icon_color' => sanitize_hex_color($_POST['ats_search_icon_color'] ?? '#666666'),
+        'button_color' => sanitize_hex_color($_POST['ats_button_color'] ?? '#2196F3'),
         'quick_links' => array(),
     );
     

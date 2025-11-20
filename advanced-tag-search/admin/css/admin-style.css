@@ -37,3 +37,8 @@ code {
     font-family: Consolas, Monaco, monospace;
     font-size: 13px;
 }
+
+/* カラーピッカー */
+.ats-color-picker {
+    max-width: 100px;
+}
