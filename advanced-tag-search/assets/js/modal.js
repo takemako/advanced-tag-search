@@ -69,15 +69,18 @@
      * モーダルを開く
      */
     function openModal() {
+        // 現在のスクロール位置を保存
+        const scrollY = window.pageYOffset;
+        $('body').data('scroll-position', scrollY);
+
         $('#ats-modal-overlay').fadeIn(300);
         // bodyのスクロールを無効化（背景のスクロールを防ぐ）
         $('body').css({
             'overflow': 'hidden',
-            'position': 'fixed',
-            'width': '100%'
+            'touch-action': 'none'
         });
     }
-    
+
     /**
      * モーダルを閉じる
      */
@@ -86,9 +89,12 @@
         // bodyのスクロールを復元
         $('body').css({
             'overflow': '',
-            'position': '',
-            'width': ''
+            'touch-action': ''
         });
+
+        // スクロール位置を復元
+        const scrollY = $('body').data('scroll-position') || 0;
+        window.scrollTo(0, scrollY);
     }
     
     /**
@@ -166,10 +172,9 @@
      */
     function performAjaxSearch() {
         if (selectedTags.length === 0) {
-            alert('タグを選択してください');
             return;
         }
-        
+
         $.ajax({
             url: atsAjax.ajaxurl,
             type: 'POST',
@@ -186,12 +191,10 @@
                     // 検索結果を表示
                     displaySearchResults(response.data);
                     closeModal();
-                } else {
-                    alert('検索に失敗しました');
                 }
             },
             error: function() {
-                alert('エラーが発生しました');
+                console.error('ATS: 検索エラーが発生しました');
             },
             complete: function() {
                 $('#ats-search-submit').prop('disabled', false);

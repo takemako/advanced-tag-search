@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // プラグインの定数定義
-define('ATS_VERSION', '1.2.3');
+define('ATS_VERSION', '1.5.0');
 define('ATS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ATS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ATS_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -69,13 +69,7 @@ class Advanced_Tag_Search {
         
         // タグ検索のクエリフィルター
         add_action('pre_get_posts', array($this, 'modify_tag_query'));
-        
-        // テーマのogp.phpエラーを抑制（get_queried_object関連）
-        add_filter('get_queried_object', array($this, 'fix_queried_object_for_tags'), 10, 1);
-        
-        // エラー表示を抑制
-        add_action('init', array($this, 'suppress_tag_errors'), 1);
-        
+
         // プラグイン有効化時の処理
         register_activation_hook(__FILE__, array($this, 'activate'));
     }
@@ -104,10 +98,10 @@ class Advanced_Tag_Search {
             array(),
             ATS_VERSION
         );
-        
+
         // カスタム色を適用
         $this->add_custom_colors();
-        
+
         // JavaScript
         wp_enqueue_script(
             'ats-modal',
@@ -116,7 +110,7 @@ class Advanced_Tag_Search {
             ATS_VERSION,
             true
         );
-        
+
         // Ajax用のデータを渡す
         wp_localize_script('ats-modal', 'atsAjax', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
@@ -124,45 +118,49 @@ class Advanced_Tag_Search {
             'searchUrl' => home_url('/'),
         ));
     }
-    
+
     /**
      * カスタム色をCSSとして出力
      */
     private function add_custom_colors() {
         $settings = get_option('ats_settings', array());
-        $icon_color = $settings['search_icon_color'] ?? '#666666';
-        $button_color = $settings['button_color'] ?? '#2196F3';
-        
-        $custom_css = "
-            <style type='text/css'>
-                /* 虹眼鏡アイコンの色 */
-                .ats-search-icon {
-                    stroke: {$icon_color} !important;
-                }
-                
-                /* 検索ボタンの色 */
-                .ats-search-button {
-                    background: {$button_color} !important;
-                    border-color: {$button_color} !important;
-                }
-                .ats-search-button:hover {
-                    background: {$button_color} !important;
-                    opacity: 0.9;
-                }
-                
-                /* モーダル内の絞り込みボタンの色 */
-                .ats-search-submit {
-                    background: {$button_color} !important;
-                    border-color: {$button_color} !important;
-                }
-                .ats-search-submit:hover {
-                    background: {$button_color} !important;
-                    opacity: 0.9;
-                }
-            </style>
-        ";
-        
-        echo $custom_css;
+        $icon_color = sanitize_hex_color($settings['search_icon_color'] ?? '#666666');
+        $button_color = sanitize_hex_color($settings['button_color'] ?? '#2196F3');
+
+        // デフォルト値にフォールバック
+        $icon_color = $icon_color ?: '#666666';
+        $button_color = $button_color ?: '#2196F3';
+
+        $custom_css = sprintf(
+            '/* 虹眼鏡アイコンの色 */
+.ats-search-icon {
+    stroke: %1$s !important;
+}
+
+/* 検索ボタンの色 */
+.ats-search-button {
+    background: %2$s !important;
+    border-color: %2$s !important;
+}
+.ats-search-button:hover {
+    background: %2$s !important;
+    opacity: 0.9;
+}
+
+/* モーダル内の絞り込みボタンの色 */
+.ats-search-submit {
+    background: %2$s !important;
+    border-color: %2$s !important;
+}
+.ats-search-submit:hover {
+    background: %2$s !important;
+    opacity: 0.9;
+}',
+            esc_attr($icon_color),
+            esc_attr($button_color)
+        );
+
+        wp_add_inline_style('ats-style', $custom_css);
     }
     
     /**
@@ -228,85 +226,6 @@ class Advanced_Tag_Search {
     }
     
     /**
-     * タグパラメータの早期フィルタリング（initフック）
-     * テーマのogp.phpがアクセスする前に処理
-     */
-    public function filter_tag_parameter() {
-        // 管理画面はスキップ
-        if (is_admin()) {
-            return;
-        }
-        
-        // tagパラメータが存在するか確認
-        if (!isset($_GET['tag']) || empty($_GET['tag'])) {
-            return;
-        }
-        
-        $tags_string = sanitize_text_field($_GET['tag']);
-        $tags = array_map('trim', explode(',', $tags_string));
-        $tags = array_filter($tags); // 空要素を削除
-        
-        // タグがない場合は何もしない
-        if (empty($tags)) {
-            return;
-        }
-        
-        // 存在するタグのみを抽出
-        $valid_tags = array();
-        foreach ($tags as $tag_slug) {
-            // URLデコードしてから正規化
-            $tag_slug = urldecode($tag_slug);
-            $tag_slug = sanitize_title($tag_slug);
-            
-            // タグの存在確認（複数の方法で試行）
-            $tag = get_term_by('slug', $tag_slug, 'post_tag');
-            
-            // slugで見つからない場合、nameでも試す
-            if (!$tag || is_wp_error($tag)) {
-                $tag = get_term_by('name', $tag_slug, 'post_tag');
-            }
-            
-            if ($tag && !is_wp_error($tag)) {
-                // 存在するタグの正しいslugを使用
-                $valid_tags[] = $tag->slug;
-            }
-        }
-        
-        // 有効なタグがない場合、tagパラメータを削除
-        if (empty($valid_tags)) {
-            unset($_GET['tag']);
-            unset($_REQUEST['tag']);
-        } else {
-            // 有効なタグのみを再設定
-            $new_tag_string = implode(',', $valid_tags);
-            $_GET['tag'] = $new_tag_string;
-            $_REQUEST['tag'] = $new_tag_string;
-        }
-    }
-    
-    /**
-     * タグパラメータのフィルタリング（parse_requestフック）
-     */
-    public function filter_tag_parameter_late($wp) {
-        // 管理画面はスキップ
-        if (is_admin()) {
-            return;
-        }
-        
-        // tagパラメータが存在するか確認
-        if (!isset($_GET['tag']) || empty($_GET['tag'])) {
-            // query_varsもクリア
-            if (isset($wp->query_vars['tag'])) {
-                $wp->query_vars['tag'] = '';
-            }
-            return;
-        }
-        
-        // query_varsを更新
-        $wp->query_vars['tag'] = sanitize_text_field($_GET['tag']);
-    }
-    
-    /**
      * タグ検索のクエリを修正（AND条件）
      */
     public function modify_tag_query($query) {
@@ -354,69 +273,7 @@ class Advanced_Tag_Search {
             $query->set('tag', '');
         }
     }
-    
-    /**
-     * エラー表示を抑制
-     */
-    public function suppress_tag_errors() {
-        // tagパラメータがある場合のみ、エラーハンドラーを設定
-        if (isset($_GET['tag']) && !empty($_GET['tag'])) {
-            // エラーハンドラーを設定して、ogp.php関連のエラーを抑制
-            set_error_handler(function($errno, $errstr, $errfile, $errline) {
-                // ogp.phpのエラーのみ抑制
-                if (strpos($errfile, 'ogp.php') !== false) {
-                    // エラーを抑制（何もしない）
-                    return true;
-                }
-                // その他のエラーは通常処理
-                return false;
-            }, E_WARNING | E_NOTICE);
-        }
-    }
-    
-    /**
-     * get_queried_objectのフィルター（テーマのogp.phpエラーを防止）
-     */
-    public function fix_queried_object_for_tags($queried_object) {
-        // 管理画面はスキップ
-        if (is_admin()) {
-            return $queried_object;
-        }
-        
-        // tagパラメータが存在し、かつqueried_objectがfalseまたはnullの場合
-        if (isset($_GET['tag']) && !empty($_GET['tag']) && (!$queried_object || $queried_object === false)) {
-            // タグパラメータから最初のタグを取得
-            $tags_string = sanitize_text_field($_GET['tag']);
-            $tags = array_map('trim', explode(',', $tags_string));
-            $tags = array_filter($tags);
-            
-            if (!empty($tags)) {
-                $tag_slug = sanitize_title($tags[0]);
-                $tag = get_term_by('slug', $tag_slug, 'post_tag');
-                
-                // タグが見つかった場合、それを返す
-                if ($tag && !is_wp_error($tag)) {
-                    return $tag;
-                }
-                
-                // タグが見つからない場合、ダミーのタグオブジェクトを返す
-                return (object) array(
-                    'term_id' => 0,
-                    'name' => '',
-                    'slug' => '',
-                    'term_group' => 0,
-                    'term_taxonomy_id' => 0,
-                    'taxonomy' => 'post_tag',
-                    'description' => '',
-                    'parent' => 0,
-                    'count' => 0,
-                );
-            }
-        }
-        
-        return $queried_object;
-    }
-    
+
     /**
      * プラグイン有効化時の処理
      */

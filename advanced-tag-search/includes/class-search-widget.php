@@ -14,10 +14,8 @@ class ATS_Search_Widget {
      */
     public static function render_search_box($atts = array()) {
         $settings = get_option('ats_settings', array());
-        $placeholder = isset($atts['placeholder']) ? $atts['placeholder'] : 
-                      (!empty($settings['placeholder']) ? $settings['placeholder'] : __('タグから探してみる', 'advanced-tag-search'));
-        $search_title = isset($atts['title']) ? $atts['title'] : 
-                       (!empty($settings['search_title']) ? $settings['search_title'] : '');
+        $placeholder = $atts['placeholder'] ?? $settings['placeholder'] ?? __('タグから探してみる', 'advanced-tag-search');
+        $search_title = $atts['title'] ?? $settings['search_title'] ?? '';
         
         ob_start();
         ?>
@@ -48,8 +46,7 @@ class ATS_Search_Widget {
      */
     public static function render_quick_links($atts = array()) {
         $settings = get_option('ats_settings', array());
-        $links = isset($atts['links']) ? explode(',', $atts['links']) : 
-                (isset($settings['quick_links']) ? $settings['quick_links'] : array());
+        $links = isset($atts['links']) ? explode(',', $atts['links']) : ($settings['quick_links'] ?? array());
         
         if (empty($links)) {
             // デフォルトのクイックリンク
@@ -84,7 +81,7 @@ class ATS_Search_Widget {
      */
     public static function render_modal() {
         $settings = get_option('ats_settings', array());
-        $modal_title = !empty($settings['modal_title']) ? $settings['modal_title'] : __('タグ検索', 'advanced-tag-search');
+        $modal_title = $settings['modal_title'] ?? __('タグ検索', 'advanced-tag-search');
         
         $tag_manager = new ATS_Tag_Manager();
         $categories = $tag_manager->get_tag_categories();
