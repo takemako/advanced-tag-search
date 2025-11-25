@@ -43,10 +43,10 @@ function ats_render_settings_page() {
                         </label>
                     </th>
                     <td>
-                        <input type="text" 
-                               id="ats_search_title" 
-                               name="ats_search_title" 
-                               value="<?php echo esc_attr($settings['search_title'] ?? ''); ?>" 
+                        <input type="text"
+                               id="ats_search_title"
+                               name="ats_search_title"
+                               value="<?php echo esc_attr($settings['search_title'] ?? ''); ?>"
                                class="regular-text">
                         <p class="description">
                             <?php _e('検索窓の上に表示されるタイトルを設定します（例: 川越の気になる！を探す）', 'advanced-tag-search'); ?>
