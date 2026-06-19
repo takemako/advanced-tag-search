@@ -85,7 +85,8 @@ class ATS_Search_Widget {
         
         $tag_manager = new ATS_Tag_Manager();
         $categories = $tag_manager->get_tag_categories();
-        
+        $wp_categories = $tag_manager->get_all_wp_categories();
+
         ob_start();
         ?>
         <div id="ats-modal-overlay" class="ats-modal-overlay" style="display: none;">
@@ -116,8 +117,23 @@ class ATS_Search_Widget {
                             </div>
                         </div>
                     <?php endforeach; ?>
+
+                    <?php if (!empty($wp_categories)): ?>
+                    <div class="ats-tag-category ats-wp-category-filter">
+                        <h3 class="ats-category-title"><?php _e('カテゴリーから絞り込む', 'advanced-tag-search'); ?></h3>
+                        <div class="ats-tag-list">
+                            <?php foreach ($wp_categories as $wp_category): ?>
+                                <button type="button"
+                                        class="ats-tag ats-category-filter"
+                                        data-category-slug="<?php echo esc_attr($wp_category['slug']); ?>">
+                                    <?php echo esc_html($wp_category['name']); ?>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </div>
-                
+
                 <div class="ats-modal-footer">
                     <button type="button" class="ats-search-submit" id="ats-search-submit">
                         <?php _e('選択したタグで絞り込む', 'advanced-tag-search'); ?>

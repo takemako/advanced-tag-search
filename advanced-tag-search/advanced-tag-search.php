@@ -2,11 +2,11 @@
 /**
  * Plugin Name: Advanced Tag Search
  * Plugin URI: https://example.com/advanced-tag-search
- * Description: Kawagoe.funのような高度な検索機能を提供するプラグイン。タグやカテゴリーでの絞り込み検索が可能です。
+ * Description: 高度な検索機能を提供するプラグイン。タグやカテゴリーでの絞り込み検索が可能です。
  * Version: 1.5.0
  * Requires at least: 5.0
  * Requires PHP: 7.4
- * Author: Your Name
+ * Author: Makoto Takei
  * Author URI: https://example.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -226,51 +226,66 @@ class Advanced_Tag_Search {
     }
     
     /**
-     * タグ検索のクエリを修正（AND条件）
+     * タグ・カテゴリー検索のクエリを修正（AND条件）
      */
     public function modify_tag_query($query) {
         // 管理画面やメインクエリ以外はスキップ
         if (is_admin() || !$query->is_main_query()) {
             return;
         }
-        
-        // tagパラメータが存在するか確認
-        if (!isset($_GET['tag']) || empty($_GET['tag'])) {
+
+        $has_tag = isset($_GET['tag']) && !empty($_GET['tag']);
+        $has_category = isset($_GET['ats_category']) && !empty($_GET['ats_category']);
+
+        // タグもカテゴリーも指定がない場合は何もしない
+        if (!$has_tag && !$has_category) {
             return;
         }
-        
-        $tags_string = sanitize_text_field($_GET['tag']);
-        $tags = array_map('trim', explode(',', $tags_string));
-        $tags = array_filter($tags); // 空要素を削除
-        
-        // タグがない場合は何もしない
-        if (empty($tags)) {
-            return;
-        }
-        
-        // タグが1つだけの場合は通常のタグ検索
-        if (count($tags) === 1) {
-            // WordPressのデフォルト動作に任せる（何もしない）
-            return;
-        }
-        
-        // 複数タグのAND検索を設定
-        $tag_ids = array();
-        
-        foreach ($tags as $tag_slug) {
-            $tag_slug = sanitize_title($tag_slug);
-            $tag = get_term_by('slug', $tag_slug, 'post_tag');
-            
-            if ($tag && !is_wp_error($tag)) {
-                $tag_ids[] = $tag->term_id;
+
+        // タグでの絞り込み
+        if ($has_tag) {
+            $tags_string = sanitize_text_field($_GET['tag']);
+            $tags = array_filter(array_map('trim', explode(',', $tags_string)));
+
+            // タグが複数ある場合はAND検索を設定（単一タグはWordPressのデフォルト動作に任せる）
+            if (count($tags) > 1) {
+                $tag_ids = array();
+
+                foreach ($tags as $tag_slug) {
+                    $tag = get_term_by('slug', sanitize_title($tag_slug), 'post_tag');
+
+                    if ($tag && !is_wp_error($tag)) {
+                        $tag_ids[] = $tag->term_id;
+                    }
+                }
+
+                if (!empty($tag_ids)) {
+                    $query->set('tag__and', $tag_ids);
+                    // tagパラメータをクリア（重複を防ぐ）
+                    $query->set('tag', '');
+                }
             }
         }
-        
-        // 有効なタグがある場合のAND検索
-        if (!empty($tag_ids)) {
-            $query->set('tag__and', $tag_ids);
-            // tagパラメータをクリア（重複を防ぐ）
-            $query->set('tag', '');
+
+        // カテゴリーでの絞り込み
+        if ($has_category) {
+            $cats_string = sanitize_text_field($_GET['ats_category']);
+            $cat_slugs = array_filter(array_map('trim', explode(',', $cats_string)));
+
+            $cat_ids = array();
+
+            foreach ($cat_slugs as $cat_slug) {
+                $category = get_term_by('slug', sanitize_title($cat_slug), 'category');
+
+                if ($category && !is_wp_error($category)) {
+                    $cat_ids[] = $category->term_id;
+                }
+            }
+
+            // 有効なカテゴリーがある場合はAND検索を設定
+            if (!empty($cat_ids)) {
+                $query->set('category__and', $cat_ids);
+            }
         }
     }
 

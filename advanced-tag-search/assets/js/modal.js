@@ -7,6 +7,9 @@
     
     // 選択されたタグを保持する配列
     let selectedTags = [];
+
+    // 選択されたカテゴリー(スラッグ)を保持する配列
+    let selectedCategories = [];
     
     /**
      * 初期化処理
@@ -51,8 +54,14 @@
      * タグ選択の初期化
      */
     function initTagSelection() {
-        $(document).on('click', '.ats-tag', function() {
+        // タグの選択(カテゴリー絞り込みボタンは除外)
+        $(document).on('click', '.ats-tag:not(.ats-category-filter)', function() {
             toggleTag($(this));
+        });
+
+        // カテゴリーの選択
+        $(document).on('click', '.ats-category-filter', function() {
+            toggleCategory($(this));
         });
     }
     
@@ -116,18 +125,39 @@
         // 検索ボタンの状態を更新
         updateSearchButton();
     }
-    
+
+    /**
+     * カテゴリーの選択/解除を切り替え
+     */
+    function toggleCategory($categoryElement) {
+        const categorySlug = $categoryElement.data('category-slug');
+
+        if ($categoryElement.hasClass('selected')) {
+            // 選択解除
+            $categoryElement.removeClass('selected');
+            selectedCategories = selectedCategories.filter(slug => slug !== categorySlug);
+        } else {
+            // 選択
+            $categoryElement.addClass('selected');
+            selectedCategories.push(categorySlug);
+        }
+
+        // 検索ボタンの状態を更新
+        updateSearchButton();
+    }
+
     /**
      * 検索ボタンの状態を更新
      */
     function updateSearchButton() {
         const $submitButton = $('#ats-search-submit');
-        
-        if (selectedTags.length > 0) {
-            $submitButton.prop('disabled', false);
-            $submitButton.text('選択したタグで絞り込む (' + selectedTags.length + ')');
+        const totalSelected = selectedTags.length + selectedCategories.length;
+
+        $submitButton.prop('disabled', false);
+
+        if (totalSelected > 0) {
+            $submitButton.text('選択した条件で絞り込む (' + totalSelected + ')');
         } else {
-            $submitButton.prop('disabled', false);
             $submitButton.text('選択したタグで絞り込む');
         }
     }
@@ -136,17 +166,26 @@
      * 検索を実行
      */
     function performSearch() {
-        if (selectedTags.length === 0) {
-            // タグが選択されていない場合は通常の検索ページへ
+        if (selectedTags.length === 0 && selectedCategories.length === 0) {
+            // タグもカテゴリーも選択されていない場合は通常の検索ページへ
             window.location.href = atsAjax.searchUrl;
             return;
         }
-        
-        // タグ検索URLを構築
-        // 複数タグの場合はカンマ区切りで連結
-        const tagQuery = selectedTags.join(',');
-        const searchUrl = atsAjax.searchUrl + '?tag=' + encodeURIComponent(tagQuery);
-        
+
+        // タグ・カテゴリー検索URLを構築
+        // 複数選択の場合はカンマ区切りで連結
+        const params = [];
+
+        if (selectedTags.length > 0) {
+            params.push('tag=' + encodeURIComponent(selectedTags.join(',')));
+        }
+
+        if (selectedCategories.length > 0) {
+            params.push('ats_category=' + encodeURIComponent(selectedCategories.join(',')));
+        }
+
+        const searchUrl = atsAjax.searchUrl + '?' + params.join('&');
+
         // 検索ページへ遷移
         window.location.href = searchUrl;
     }
@@ -217,6 +256,7 @@
      */
     function clearSelectedTags() {
         selectedTags = [];
+        selectedCategories = [];
         $('.ats-tag').removeClass('selected');
         updateSearchButton();
     }
@@ -230,6 +270,9 @@
         clearTags: clearSelectedTags,
         getSelectedTags: function() {
             return selectedTags.slice();
+        },
+        getSelectedCategories: function() {
+            return selectedCategories.slice();
         }
     };
     
