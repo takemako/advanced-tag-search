@@ -87,6 +87,12 @@ class ATS_Search_Widget {
         $categories = $tag_manager->get_tag_categories();
         $wp_categories = $tag_manager->get_all_wp_categories();
 
+        // タグ名→スラッグの対応表を作成（検索URLにはスラッグを使用）
+        $tag_slug_map = array();
+        foreach ($tag_manager->get_all_wp_tags() as $wp_tag) {
+            $tag_slug_map[$wp_tag['name']] = $wp_tag['slug'];
+        }
+
         ob_start();
         ?>
         <div id="ats-modal-overlay" class="ats-modal-overlay" style="display: none;">
@@ -107,9 +113,10 @@ class ATS_Search_Widget {
                             <h3 class="ats-category-title"><?php echo esc_html($category_data['title']); ?></h3>
                             <div class="ats-tag-list">
                                 <?php foreach ($category_data['tags'] as $tag): ?>
-                                    <button type="button" 
-                                            class="ats-tag" 
-                                            data-tag="<?php echo esc_attr($tag); ?>"
+                                    <?php $tag_value = isset($tag_slug_map[$tag]) ? $tag_slug_map[$tag] : $tag; ?>
+                                    <button type="button"
+                                            class="ats-tag"
+                                            data-tag="<?php echo esc_attr($tag_value); ?>"
                                             data-category="<?php echo esc_attr($category_key); ?>">
                                         #<?php echo esc_html($tag); ?>
                                     </button>
