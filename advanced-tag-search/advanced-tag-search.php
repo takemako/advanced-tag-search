@@ -297,7 +297,6 @@ class Advanced_Tag_Search {
         $default_settings = array(
             'placeholder' => __('タグから探してみる', 'advanced-tag-search'),
             'modal_title' => __('タグ検索', 'advanced-tag-search'),
-            'quick_links' => array(),
         );
         
         if (!get_option('ats_settings')) {

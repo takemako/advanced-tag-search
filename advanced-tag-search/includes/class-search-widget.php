@@ -43,33 +43,36 @@ class ATS_Search_Widget {
     
     /**
      * クイックリンクのレンダリング
+     *
+     * ブログのカテゴリー（投稿のあるもの）から自動生成します。
      */
     public static function render_quick_links($atts = array()) {
-        $settings = get_option('ats_settings', array());
-        $links = isset($atts['links']) ? explode(',', $atts['links']) : ($settings['quick_links'] ?? array());
-        
-        if (empty($links)) {
-            // デフォルトのクイックリンク
-            $links = array(
-                array('text' => '川越のお店一覧', 'url' => '/category/shops/'),
-                array('text' => '特集記事一覧', 'url' => '/category/features/'),
-                array('text' => '川越氷川神社', 'url' => '/tag/hikawa-shrine/'),
-                array('text' => '川越でスイーツ', 'url' => '/tag/sweets/'),
-                array('text' => 'サイトマップ', 'url' => '/sitemap/'),
+        $tag_manager = new ATS_Tag_Manager();
+        $links = array();
+
+        // 投稿のあるカテゴリーをクイックリンクとして表示
+        foreach ($tag_manager->get_all_wp_categories() as $wp_category) {
+            if (empty($wp_category['count'])) {
+                continue;
+            }
+            $links[] = array(
+                'text' => $wp_category['name'],
+                'url'  => $wp_category['link'],
             );
         }
-        
+
+        // 表示するカテゴリーがない場合は何も出力しない
+        if (empty($links)) {
+            return '';
+        }
+
         ob_start();
         ?>
         <div class="ats-quick-links">
             <?php foreach ($links as $link): ?>
-                <?php if (is_array($link)): ?>
-                    <a href="<?php echo esc_url($link['url']); ?>" class="ats-quick-link">
-                        <?php echo esc_html($link['text']); ?>
-                    </a>
-                <?php else: ?>
-                    <span class="ats-quick-link"><?php echo esc_html($link); ?></span>
-                <?php endif; ?>
+                <a href="<?php echo esc_url($link['url']); ?>" class="ats-quick-link">
+                    <?php echo esc_html($link['text']); ?>
+                </a>
             <?php endforeach; ?>
         </div>
         <?php
@@ -86,6 +89,14 @@ class ATS_Search_Widget {
         $tag_manager = new ATS_Tag_Manager();
         $categories = $tag_manager->get_tag_categories();
         $wp_categories = $tag_manager->get_all_wp_categories();
+
+        // 管理画面で選択されたカテゴリーのみ表示（未設定の場合は全カテゴリー表示）
+        if (isset($settings['filter_categories']) && is_array($settings['filter_categories'])) {
+            $selected_slugs = $settings['filter_categories'];
+            $wp_categories = array_values(array_filter($wp_categories, function ($wp_category) use ($selected_slugs) {
+                return in_array($wp_category['slug'], $selected_slugs, true);
+            }));
+        }
 
         // タグ名→スラッグの対応表を作成（検索URLにはスラッグを使用）
         $tag_slug_map = array();

@@ -25,15 +25,12 @@ function ats_search_shortcode($atts) {
 
 /**
  * [search_quick_links] ショートコード
- * 
+ *
+ * ブログのカテゴリーから自動生成されたクイックリンクを表示します。
+ *
  * 使用例:
  * [search_quick_links]
- * [search_quick_links links="リンク1,リンク2,リンク3"]
  */
 function ats_quick_links_shortcode($atts) {
-    $atts = shortcode_atts(array(
-        'links' => '',
-    ), $atts, 'search_quick_links');
-    
     return ATS_Search_Widget::render_quick_links($atts);
 }

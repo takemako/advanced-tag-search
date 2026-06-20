@@ -28,6 +28,11 @@ function ats_render_settings_page() {
     $tag_manager = new ATS_Tag_Manager();
     $tag_categories = $tag_manager->get_tag_categories();
     $all_wp_tags = $tag_manager->get_all_wp_tags();
+    $all_wp_categories = $tag_manager->get_all_wp_categories();
+    // モーダルに表示するカテゴリーの選択（未設定の場合はnull＝全カテゴリー表示）
+    $filter_categories = isset($settings['filter_categories']) && is_array($settings['filter_categories'])
+        ? $settings['filter_categories']
+        : null;
     
     ?>
     <div class="wrap">
@@ -177,6 +182,10 @@ function ats_render_settings_page() {
                                 ?>
                             </p>
                         <?php else: ?>
+                            <p class="ats-checkbox-toolbar">
+                                <button type="button" class="button button-small ats-select-all"><?php _e('全選択', 'advanced-tag-search'); ?></button>
+                                <button type="button" class="button button-small ats-deselect-all"><?php _e('全解除', 'advanced-tag-search'); ?></button>
+                            </p>
                             <div class="ats-tag-checkbox-list">
                                 <?php foreach ($all_wp_tags as $wp_tag): ?>
                                     <label class="ats-tag-checkbox">
@@ -201,52 +210,59 @@ function ats_render_settings_page() {
                 <?php endforeach; ?>
             </table>
             
-            <h2><?php _e('クイックリンク設定', 'advanced-tag-search'); ?></h2>
-            <p><?php _e('検索窓の下に表示するクイックリンクを設定します。', 'advanced-tag-search'); ?></p>
-            
+            <h2><?php _e('カテゴリー絞り込み設定', 'advanced-tag-search'); ?></h2>
+            <p><?php _e('検索モーダルの「カテゴリーから絞り込む」に表示するカテゴリーを選択してください。', 'advanced-tag-search'); ?></p>
+
             <table class="form-table">
                 <tr>
                     <th scope="row">
-                        <label for="ats_quick_links">
-                            <?php _e('クイックリンク', 'advanced-tag-search'); ?>
+                        <label>
+                            <?php _e('カテゴリー選択', 'advanced-tag-search'); ?>
                         </label>
                     </th>
                     <td>
-                        <div id="ats-quick-links-container">
-                            <?php
-                            $quick_links = isset($settings['quick_links']) ? $settings['quick_links'] : array();
-                            if (empty($quick_links)) {
-                                $quick_links = array(
-                                    array('text' => '川越のお店一覧', 'url' => '/category/shops/'),
-                                    array('text' => '特集記事一覧', 'url' => '/category/features/'),
+                        <?php if (empty($all_wp_categories)): ?>
+                            <p class="description">
+                                <?php
+                                printf(
+                                    wp_kses(
+                                        __('WordPressにカテゴリーが登録されていません。先に<a href="%s">カテゴリーを作成</a>してください。', 'advanced-tag-search'),
+                                        array('a' => array('href' => array()))
+                                    ),
+                                    esc_url(admin_url('edit-tags.php?taxonomy=category'))
                                 );
-                            }
-                            
-                            foreach ($quick_links as $index => $link):
-                            ?>
-                            <div class="ats-quick-link-item" style="margin-bottom: 10px;">
-                                <input type="text" 
-                                       name="ats_quick_link_text[]" 
-                                       value="<?php echo esc_attr($link['text']); ?>" 
-                                       placeholder="リンクテキスト" 
-                                       style="width: 200px; margin-right: 10px;">
-                                <input type="text" 
-                                       name="ats_quick_link_url[]" 
-                                       value="<?php echo esc_attr($link['url']); ?>" 
-                                       placeholder="URL" 
-                                       style="width: 300px; margin-right: 10px;">
-                                <button type="button" class="button ats-remove-link">削除</button>
+                                ?>
+                            </p>
+                        <?php else: ?>
+                            <p class="ats-checkbox-toolbar">
+                                <button type="button" class="button button-small ats-select-all"><?php _e('全選択', 'advanced-tag-search'); ?></button>
+                                <button type="button" class="button button-small ats-deselect-all"><?php _e('全解除', 'advanced-tag-search'); ?></button>
+                            </p>
+                            <div class="ats-tag-checkbox-list">
+                                <?php foreach ($all_wp_categories as $wp_category): ?>
+                                    <label class="ats-tag-checkbox">
+                                        <input type="checkbox"
+                                               name="ats_filter_categories[]"
+                                               value="<?php echo esc_attr($wp_category['slug']); ?>"
+                                               <?php checked(null === $filter_categories || in_array($wp_category['slug'], $filter_categories, true)); ?>>
+                                        <?php echo esc_html($wp_category['name']); ?>
+                                        <span class="ats-tag-count">(<?php echo intval($wp_category['count']); ?>)</span>
+                                    </label>
+                                <?php endforeach; ?>
                             </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <button type="button" id="ats-add-link" class="button">リンクを追加</button>
-                        <p class="description">
-                            <?php _e('クイックリンクのテキストとURLを設定します。', 'advanced-tag-search'); ?>
-                        </p>
+                            <p class="description">
+                                <?php _e('モーダルに表示するカテゴリーにチェックを入れてください。すべて未選択の場合はカテゴリー絞り込みは表示されません。', 'advanced-tag-search'); ?>
+                            </p>
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
-            
+
+            <h2><?php _e('クイックリンク設定', 'advanced-tag-search'); ?></h2>
+            <p>
+                <?php _e('クイックリンクは、ブログのカテゴリーから自動生成されます（投稿のあるカテゴリーが対象）。「投稿」→「カテゴリー」で編集すると、検索窓の下のクイックリンクにも反映されます。', 'advanced-tag-search'); ?>
+            </p>
+
             <h2><?php _e('ショートコード', 'advanced-tag-search'); ?></h2>
             <p><?php _e('以下のショートコードをページやウィジェットに貼り付けて使用してください。', 'advanced-tag-search'); ?></p>
             
@@ -286,19 +302,14 @@ function ats_render_settings_page() {
     
     <script>
     jQuery(document).ready(function($) {
-        // リンク追加
-        $('#ats-add-link').on('click', function() {
-            const html = '<div class="ats-quick-link-item" style="margin-bottom: 10px;">' +
-                '<input type="text" name="ats_quick_link_text[]" placeholder="リンクテキスト" style="width: 200px; margin-right: 10px;">' +
-                '<input type="text" name="ats_quick_link_url[]" placeholder="URL" style="width: 300px; margin-right: 10px;">' +
-                '<button type="button" class="button ats-remove-link">削除</button>' +
-                '</div>';
-            $('#ats-quick-links-container').append(html);
+        // 全選択（同じ欄のチェックボックス一覧を対象）
+        $(document).on('click', '.ats-select-all', function() {
+            $(this).closest('td').find('.ats-tag-checkbox-list input[type="checkbox"]').prop('checked', true);
         });
-        
-        // リンク削除
-        $(document).on('click', '.ats-remove-link', function() {
-            $(this).closest('.ats-quick-link-item').remove();
+
+        // 全解除
+        $(document).on('click', '.ats-deselect-all', function() {
+            $(this).closest('td').find('.ats-tag-checkbox-list input[type="checkbox"]').prop('checked', false);
         });
     });
     </script>
@@ -316,24 +327,15 @@ function ats_save_settings() {
         'modal_title' => sanitize_text_field($_POST['ats_modal_title'] ?? ''),
         'search_icon_color' => sanitize_hex_color($_POST['ats_search_icon_color'] ?? '#666666'),
         'button_color' => sanitize_hex_color($_POST['ats_button_color'] ?? '#2196F3'),
-        'quick_links' => array(),
     );
-    
-    // クイックリンクの保存
-    if (isset($_POST['ats_quick_link_text']) && isset($_POST['ats_quick_link_url'])) {
-        $texts = $_POST['ats_quick_link_text'];
-        $urls = $_POST['ats_quick_link_url'];
-        
-        for ($i = 0; $i < count($texts); $i++) {
-            if (!empty($texts[$i]) && !empty($urls[$i])) {
-                $settings['quick_links'][] = array(
-                    'text' => sanitize_text_field($texts[$i]),
-                    'url' => esc_url_raw($urls[$i]),
-                );
-            }
-        }
+
+    // モーダルに表示するカテゴリーの保存（チェックされたスラッグのみ。未チェックなら空配列）
+    $filter_categories = array();
+    if (isset($_POST['ats_filter_categories']) && is_array($_POST['ats_filter_categories'])) {
+        $filter_categories = array_map('sanitize_title', $_POST['ats_filter_categories']);
     }
-    
+    $settings['filter_categories'] = $filter_categories;
+
     update_option('ats_settings', $settings);
     
     // タグカテゴリーの保存（チェックされたタグのみを保存）
