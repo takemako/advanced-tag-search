@@ -33,6 +33,14 @@ function ats_render_settings_page() {
     $filter_categories = isset($settings['filter_categories']) && is_array($settings['filter_categories'])
         ? $settings['filter_categories']
         : null;
+    // クイックリンクに表示するカテゴリーの選択（未設定の場合はnull＝投稿のある全カテゴリー表示）
+    $quick_link_categories = isset($settings['quick_link_categories']) && is_array($settings['quick_link_categories'])
+        ? $settings['quick_link_categories']
+        : null;
+    // クイックリンクの候補（投稿のあるカテゴリーのみ）
+    $quick_link_candidates = array_values(array_filter($all_wp_categories, function ($wp_category) {
+        return !empty($wp_category['count']);
+    }));
     
     ?>
     <div class="wrap">
@@ -259,9 +267,52 @@ function ats_render_settings_page() {
             </table>
 
             <h2><?php _e('クイックリンク設定', 'advanced-tag-search'); ?></h2>
-            <p>
-                <?php _e('クイックリンクは、ブログのカテゴリーから自動生成されます（投稿のあるカテゴリーが対象）。「投稿」→「カテゴリー」で編集すると、検索窓の下のクイックリンクにも反映されます。', 'advanced-tag-search'); ?>
-            </p>
+            <p><?php _e('検索窓の下に表示するクイックリンクを、ブログのカテゴリーから選択してください。リンク先は各カテゴリーのアーカイブページになります。', 'advanced-tag-search'); ?></p>
+
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label>
+                            <?php _e('表示するクイックリンク', 'advanced-tag-search'); ?>
+                        </label>
+                    </th>
+                    <td>
+                        <?php if (empty($quick_link_candidates)): ?>
+                            <p class="description">
+                                <?php
+                                printf(
+                                    wp_kses(
+                                        __('投稿のあるカテゴリーがありません。<a href="%s">カテゴリーを作成</a>し、投稿に割り当ててください。', 'advanced-tag-search'),
+                                        array('a' => array('href' => array()))
+                                    ),
+                                    esc_url(admin_url('edit-tags.php?taxonomy=category'))
+                                );
+                                ?>
+                            </p>
+                        <?php else: ?>
+                            <p class="ats-checkbox-toolbar">
+                                <button type="button" class="button button-small ats-select-all"><?php _e('全選択', 'advanced-tag-search'); ?></button>
+                                <button type="button" class="button button-small ats-deselect-all"><?php _e('全解除', 'advanced-tag-search'); ?></button>
+                            </p>
+                            <div class="ats-tag-checkbox-list">
+                                <?php foreach ($quick_link_candidates as $wp_category): ?>
+                                    <label class="ats-tag-checkbox">
+                                        <input type="checkbox"
+                                               name="ats_quick_link_categories[]"
+                                               value="<?php echo esc_attr($wp_category['slug']); ?>"
+                                               <?php checked(null === $quick_link_categories || in_array($wp_category['slug'], $quick_link_categories, true)); ?>>
+                                        <?php echo esc_html($wp_category['name']); ?>
+                                        <span class="ats-tag-count">(<?php echo intval($wp_category['count']); ?>)</span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <p class="description">
+                                <?php _e('クイックリンクとして表示するカテゴリーにチェックを入れてください。すべて未選択の場合はクイックリンクは表示されません。', 'advanced-tag-search'); ?>
+                            </p>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </table>
 
             <h2><?php _e('ショートコード', 'advanced-tag-search'); ?></h2>
             <p><?php _e('以下のショートコードをページやウィジェットに貼り付けて使用してください。', 'advanced-tag-search'); ?></p>
@@ -389,6 +440,13 @@ function ats_save_settings() {
         $filter_categories = array_map('sanitize_title', $_POST['ats_filter_categories']);
     }
     $settings['filter_categories'] = $filter_categories;
+
+    // クイックリンクに表示するカテゴリーの保存（チェックされたスラッグのみ。未チェックなら空配列）
+    $quick_link_categories = array();
+    if (isset($_POST['ats_quick_link_categories']) && is_array($_POST['ats_quick_link_categories'])) {
+        $quick_link_categories = array_map('sanitize_title', $_POST['ats_quick_link_categories']);
+    }
+    $settings['quick_link_categories'] = $quick_link_categories;
 
     update_option('ats_settings', $settings);
     
