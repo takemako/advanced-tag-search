@@ -47,12 +47,21 @@ class ATS_Search_Widget {
      * ブログのカテゴリー（投稿のあるもの）から自動生成します。
      */
     public static function render_quick_links($atts = array()) {
+        $settings = get_option('ats_settings', array());
         $tag_manager = new ATS_Tag_Manager();
         $links = array();
 
-        // 投稿のあるカテゴリーをクイックリンクとして表示
+        // 管理画面で選択されたカテゴリー（未設定の場合はnull＝投稿のある全カテゴリー）
+        $selected = isset($settings['quick_link_categories']) && is_array($settings['quick_link_categories'])
+            ? $settings['quick_link_categories']
+            : null;
+
+        // 投稿のあるカテゴリーから、選択されたものをクイックリンクとして表示
         foreach ($tag_manager->get_all_wp_categories() as $wp_category) {
             if (empty($wp_category['count'])) {
+                continue;
+            }
+            if (null !== $selected && !in_array($wp_category['slug'], $selected, true)) {
                 continue;
             }
             $links[] = array(
