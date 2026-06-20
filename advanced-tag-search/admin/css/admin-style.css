@@ -72,3 +72,12 @@ code {
     font-size: 12px;
     margin-left: 4px;
 }
+
+/* 全選択/全解除ツールバー */
+.ats-checkbox-toolbar {
+    margin: 0 0 8px 0;
+}
+
+.ats-checkbox-toolbar .button {
+    margin-right: 6px;
+}

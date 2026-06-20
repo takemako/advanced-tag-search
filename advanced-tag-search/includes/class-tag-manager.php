@@ -137,9 +137,10 @@ class ATS_Tag_Manager {
                 'name' => $category->name,
                 'slug' => $category->slug,
                 'count' => $category->count,
+                'link' => get_category_link($category->term_id),
             );
         }
-        
+
         return $category_list;
     }
     
