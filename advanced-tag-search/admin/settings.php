@@ -295,7 +295,61 @@ function ats_render_settings_page() {
                     </td>
                 </tr>
             </table>
-            
+
+            <h2><?php _e('動作環境', 'advanced-tag-search'); ?></h2>
+            <p><?php _e('このプラグインの必須・推奨バージョンと、現在の環境を表示します。', 'advanced-tag-search'); ?></p>
+
+            <?php
+            global $wp_version;
+            $env_rows = array(
+                array(
+                    'label'       => 'PHP',
+                    'current'     => PHP_VERSION,
+                    'min'         => ATS_MIN_PHP,
+                    'recommended' => ATS_RECOMMENDED_PHP,
+                ),
+                array(
+                    'label'       => 'WordPress',
+                    'current'     => $wp_version,
+                    'min'         => ATS_MIN_WP,
+                    'recommended' => ATS_RECOMMENDED_WP,
+                ),
+            );
+            ?>
+            <table class="form-table">
+                <?php foreach ($env_rows as $row): ?>
+                    <?php
+                    if (version_compare($row['current'], $row['min'], '<')) {
+                        $status = '✕ ' . __('必須バージョンを下回っています', 'advanced-tag-search');
+                        $color  = '#d63638';
+                    } elseif (version_compare($row['current'], $row['recommended'], '<')) {
+                        $status = '△ ' . __('動作可能（推奨バージョン未満）', 'advanced-tag-search');
+                        $color  = '#dba617';
+                    } else {
+                        $status = '✓ ' . __('推奨環境を満たしています', 'advanced-tag-search');
+                        $color  = '#00a32a';
+                    }
+                    ?>
+                    <tr>
+                        <th scope="row"><?php echo esc_html($row['label']); ?></th>
+                        <td>
+                            <?php
+                            printf(
+                                /* translators: 1: 現在, 2: 必須, 3: 推奨 */
+                                esc_html__('現在: %1$s ／ 必須: %2$s 以上 ／ 推奨: %3$s 以上', 'advanced-tag-search'),
+                                esc_html($row['current']),
+                                esc_html($row['min']),
+                                esc_html($row['recommended'])
+                            );
+                            ?>
+                            <p class="description" style="color: <?php echo esc_attr($color); ?>; font-weight: 500;">
+                                <?php echo esc_html($status); ?>
+                            </p>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+
             <?php submit_button(__('設定を保存', 'advanced-tag-search'), 'primary', 'ats_save_settings'); ?>
         </form>
     </div>

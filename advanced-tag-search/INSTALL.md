@@ -6,8 +6,8 @@
 
 ## システム要件
 
-- WordPress 5.0以上
-- PHP 7.2以上
+- WordPress 6.0以上（6.8以上を推奨）
+- PHP 7.4以上（8.2以上を推奨）
 - jQuery（WordPressに標準搭載）
 
 ## インストール方法

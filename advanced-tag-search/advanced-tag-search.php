@@ -3,8 +3,8 @@
  * Plugin Name: Advanced Tag Search
  * Plugin URI: https://example.com/advanced-tag-search
  * Description: 高度な検索機能を提供するプラグイン。タグやカテゴリーでの絞り込み検索が可能です。
- * Version: 1.5.0
- * Requires at least: 5.0
+ * Version: 1.6.0
+ * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Makoto Takei
  * Author URI: https://example.com
@@ -20,10 +20,17 @@ if (!defined('ABSPATH')) {
 }
 
 // プラグインの定数定義
-define('ATS_VERSION', '1.5.0');
+define('ATS_VERSION', '1.6.0');
 define('ATS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ATS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ATS_PLUGIN_BASENAME', plugin_basename(__FILE__));
+
+// 動作要件（最低バージョン）
+define('ATS_MIN_PHP', '7.4');
+define('ATS_MIN_WP', '6.0');
+// 推奨バージョン
+define('ATS_RECOMMENDED_PHP', '8.2');
+define('ATS_RECOMMENDED_WP', '6.8');
 
 /**
  * メインクラス
@@ -312,9 +319,72 @@ class Advanced_Tag_Search {
 }
 
 /**
+ * 動作要件（PHP / WordPress バージョン）を満たすか確認
+ *
+ * @return bool 要件を満たす場合は true
+ */
+function ats_meets_requirements() {
+    global $wp_version;
+
+    $php_ok = version_compare(PHP_VERSION, ATS_MIN_PHP, '>=');
+    $wp_ok  = version_compare($wp_version, ATS_MIN_WP, '>=');
+
+    return $php_ok && $wp_ok;
+}
+
+/**
+ * 要件未達時の管理画面通知
+ */
+function ats_requirements_notice() {
+    global $wp_version;
+
+    $message = sprintf(
+        /* translators: 1: 必要PHP, 2: 必要WP, 3: 現在PHP, 4: 現在WP */
+        __('「Advanced Tag Search」を利用するには PHP %1$s 以上 / WordPress %2$s 以上が必要です。（現在の環境: PHP %3$s / WordPress %4$s）', 'advanced-tag-search'),
+        ATS_MIN_PHP,
+        ATS_MIN_WP,
+        PHP_VERSION,
+        $wp_version
+    );
+
+    echo '<div class="notice notice-error"><p>' . esc_html($message) . '</p></div>';
+}
+
+/**
+ * 有効化時のバージョンチェック（要件未達なら有効化を中止）
+ */
+function ats_activation_check() {
+    if (ats_meets_requirements()) {
+        return;
+    }
+
+    deactivate_plugins(plugin_basename(__FILE__));
+
+    wp_die(
+        esc_html(sprintf(
+            /* translators: 1: 必要PHP, 2: 必要WP, 3: 現在PHP, 4: 現在WP */
+            __('「Advanced Tag Search」を有効化できません。PHP %1$s 以上 / WordPress %2$s 以上が必要です。（現在の環境: PHP %3$s / WordPress %4$s）', 'advanced-tag-search'),
+            ATS_MIN_PHP,
+            ATS_MIN_WP,
+            PHP_VERSION,
+            $GLOBALS['wp_version']
+        )),
+        esc_html__('プラグイン有効化エラー', 'advanced-tag-search'),
+        array('back_link' => true)
+    );
+}
+register_activation_hook(__FILE__, 'ats_activation_check');
+
+/**
  * プラグインの初期化
  */
 function ats_init() {
+    // 動作要件を満たさない場合は通知のみ表示して初期化しない
+    if (!ats_meets_requirements()) {
+        add_action('admin_notices', 'ats_requirements_notice');
+        return;
+    }
+
     return Advanced_Tag_Search::get_instance();
 }
 
