@@ -24,52 +24,23 @@ class ATS_Tag_Manager {
     
     /**
      * デフォルトのタグカテゴリーを取得
+     *
+     * 標準では3カテゴリー。タグは管理画面でWordPress登録済みタグから選択します。
      */
     public function get_default_categories() {
         return array(
-            'genre' => array(
+            'cat_0' => array(
                 'title' => __('ジャンルから絞り込む', 'advanced-tag-search'),
-                'tags' => array(
-                    '食べ歩き', 'レストラン', 'カフェ', 'スイーツ', '居酒屋', 'バー',
-                    '宿泊施設', '温泉・銭湯', '展示', '体験', 'お土産',
-                    '神社・寺院', '観光スポット', 'お祭り'
-                )
+                'tags'  => array(),
             ),
-            'area' => array(
+            'cat_1' => array(
                 'title' => __('エリアから絞り込む', 'advanced-tag-search'),
-                'tags' => array(
-                    '蔵造りの街並み周辺', '時の鐘周辺', '菓子屋横丁周辺', '氷川神社周辺',
-                    '川越市役所周辺', '昭和の街周辺', '大正浪漫夢通り周辺', '川越駅',
-                    '本川越駅・川越市駅', 'クレアモール周辺', '喜多院周辺', '川越城周辺',
-                    '南古谷駅方面', '南大塚駅方面', '新河岸駅方面', '西川越駅方面',
-                    '霞ヶ関駅方面'
-                )
+                'tags'  => array(),
             ),
-            'keyword' => array(
+            'cat_2' => array(
                 'title' => __('キーワードから絞り込む', 'advanced-tag-search'),
-                'tags' => array(
-                    '芋', '鰻', '団子', '蕎麦', '太麺焼きそば', 'カレー', 'うどん', '肉',
-                    'ラーメン', 'コーヒー', 'ケーキ', 'アイス', 'かき氷', 'お茶', 'お酒'
-                )
+                'tags'  => array(),
             ),
-            'time' => array(
-                'title' => __('時間帯から絞り込む', 'advanced-tag-search'),
-                'tags' => array(
-                    'モーニング', 'ランチ', 'ディナー'
-                )
-            ),
-            'season' => array(
-                'title' => __('季節から絞り込む', 'advanced-tag-search'),
-                'tags' => array(
-                    '春', '夏', '秋', '冬'
-                )
-            ),
-            'other' => array(
-                'title' => __('その他から絞り込む', 'advanced-tag-search'),
-                'tags' => array(
-                    'おすすめまとめ', '観光コース', '月がきれい', 'kokoradi'
-                )
-            )
         );
     }
     
