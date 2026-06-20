@@ -81,3 +81,34 @@ code {
 .ats-checkbox-toolbar .button {
     margin-right: 6px;
 }
+
+/* タグカテゴリーブロック */
+.ats-category-block {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.ats-category-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.ats-category-block-header .ats-category-title-input {
+    flex: 1;
+}
+
+.ats-remove-category {
+    color: #b32d2e;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ats-remove-category:hover {
+    color: #d63638;
+}
