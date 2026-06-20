@@ -27,6 +27,7 @@ function ats_render_settings_page() {
     $settings = get_option('ats_settings', array());
     $tag_manager = new ATS_Tag_Manager();
     $tag_categories = $tag_manager->get_tag_categories();
+    $all_wp_tags = $tag_manager->get_all_wp_tags();
     
     ?>
     <div class="wrap">
@@ -134,7 +135,7 @@ function ats_render_settings_page() {
             
             
             <h2><?php _e('タグカテゴリー設定', 'advanced-tag-search'); ?></h2>
-            <p><?php _e('各カテゴリーのタグをカンマ区切りで入力してください。', 'advanced-tag-search'); ?></p>
+            <p><?php _e('各カテゴリーに表示するタグを、WordPressに登録済みのタグから選択してください。', 'advanced-tag-search'); ?></p>
             
             <table class="form-table">
                 <?php foreach ($tag_categories as $category_key => $category_data): ?>
@@ -158,18 +159,40 @@ function ats_render_settings_page() {
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="ats_category_<?php echo esc_attr($category_key); ?>">
-                            <?php _e('タグ一覧', 'advanced-tag-search'); ?>
+                        <label>
+                            <?php _e('タグ選択', 'advanced-tag-search'); ?>
                         </label>
                     </th>
                     <td>
-                        <textarea id="ats_category_<?php echo esc_attr($category_key); ?>" 
-                                  name="ats_category_tags[<?php echo esc_attr($category_key); ?>]" 
-                                  rows="3" 
-                                  class="large-text"><?php echo esc_textarea(implode(', ', $category_data['tags'])); ?></textarea>
-                        <p class="description">
-                            <?php _e('タグをカンマ区切りで入力してください（例: タグ1, タグ2, タグ3）', 'advanced-tag-search'); ?>
-                        </p>
+                        <?php if (empty($all_wp_tags)): ?>
+                            <p class="description">
+                                <?php
+                                printf(
+                                    wp_kses(
+                                        __('WordPressにタグが登録されていません。先に<a href="%s">タグを作成</a>してください。', 'advanced-tag-search'),
+                                        array('a' => array('href' => array()))
+                                    ),
+                                    esc_url(admin_url('edit-tags.php?taxonomy=post_tag'))
+                                );
+                                ?>
+                            </p>
+                        <?php else: ?>
+                            <div class="ats-tag-checkbox-list">
+                                <?php foreach ($all_wp_tags as $wp_tag): ?>
+                                    <label class="ats-tag-checkbox">
+                                        <input type="checkbox"
+                                               name="ats_category_tags[<?php echo esc_attr($category_key); ?>][]"
+                                               value="<?php echo esc_attr($wp_tag['name']); ?>"
+                                               <?php checked(in_array($wp_tag['name'], $category_data['tags'], true)); ?>>
+                                        <?php echo esc_html($wp_tag['name']); ?>
+                                        <span class="ats-tag-count">(<?php echo intval($wp_tag['count']); ?>)</span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <p class="description">
+                                <?php _e('このカテゴリーに表示するタグにチェックを入れてください。', 'advanced-tag-search'); ?>
+                            </p>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <tr>
@@ -313,20 +336,23 @@ function ats_save_settings() {
     
     update_option('ats_settings', $settings);
     
-    // タグカテゴリーの保存
-    if (isset($_POST['ats_category_tags']) && isset($_POST['ats_category_title'])) {
+    // タグカテゴリーの保存（チェックされたタグのみを保存）
+    if (isset($_POST['ats_category_title'])) {
         $tag_categories = array();
-        
-        foreach ($_POST['ats_category_tags'] as $category_key => $tags_string) {
-            $tags = array_map('trim', explode(',', $tags_string));
-            $tags = array_filter($tags); // 空要素を削除
-            
+
+        foreach ($_POST['ats_category_title'] as $category_key => $title) {
+            // チェックされたタグを取得（未チェックの場合はPOSTに含まれないため空配列）
+            $selected_tags = array();
+            if (isset($_POST['ats_category_tags'][$category_key]) && is_array($_POST['ats_category_tags'][$category_key])) {
+                $selected_tags = array_map('sanitize_text_field', $_POST['ats_category_tags'][$category_key]);
+            }
+
             $tag_categories[sanitize_key($category_key)] = array(
-                'title' => sanitize_text_field($_POST['ats_category_title'][$category_key]),
-                'tags' => array_map('sanitize_text_field', $tags),
+                'title' => sanitize_text_field($title),
+                'tags' => $selected_tags,
             );
         }
-        
+
         update_option('ats_tag_categories', $tag_categories);
     }
 }

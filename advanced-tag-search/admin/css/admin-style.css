@@ -42,3 +42,33 @@ code {
 .ats-color-picker {
     max-width: 100px;
 }
+
+/* タグ選択チェックボックス一覧 */
+.ats-tag-checkbox-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 12px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    background: #fff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+
+.ats-tag-checkbox {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ats-tag-checkbox input[type="checkbox"] {
+    margin-right: 6px;
+}
+
+.ats-tag-checkbox .ats-tag-count {
+    color: #888;
+    font-size: 12px;
+    margin-left: 4px;
+}
