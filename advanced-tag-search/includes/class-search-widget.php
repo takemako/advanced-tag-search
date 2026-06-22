@@ -128,6 +128,16 @@ class ATS_Search_Widget {
                 </div>
                 
                 <div class="ats-modal-body">
+                    <div class="ats-tag-category ats-keyword-search">
+                        <h3 class="ats-category-title"><?php _e('キーワードで検索', 'advanced-tag-search'); ?></h3>
+                        <div class="ats-keyword-search-box">
+                            <input type="text"
+                                   id="ats-keyword-input"
+                                   class="ats-keyword-input"
+                                   placeholder="<?php esc_attr_e('キーワードを入力（サイト内検索）', 'advanced-tag-search'); ?>">
+                        </div>
+                    </div>
+
                     <?php foreach ($categories as $category_key => $category_data): ?>
                         <div class="ats-tag-category">
                             <h3 class="ats-category-title"><?php echo esc_html($category_data['title']); ?></h3>
