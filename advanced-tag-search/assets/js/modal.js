@@ -72,6 +72,14 @@
         $(document).on('click', '#ats-search-submit', function() {
             performSearch();
         });
+
+        // キーワード欄でEnterキーを押したら検索を実行
+        $(document).on('keydown', '#ats-keyword-input', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
     }
     
     /**
@@ -166,15 +174,23 @@
      * 検索を実行
      */
     function performSearch() {
-        if (selectedTags.length === 0 && selectedCategories.length === 0) {
-            // タグもカテゴリーも選択されていない場合は通常の検索ページへ
+        // キーワード（サイト内検索）を取得
+        const keyword = ($('#ats-keyword-input').val() || '').trim();
+
+        if (keyword === '' && selectedTags.length === 0 && selectedCategories.length === 0) {
+            // キーワードもタグもカテゴリーも未指定の場合は通常の検索ページへ
             window.location.href = atsAjax.searchUrl;
             return;
         }
 
-        // タグ・カテゴリー検索URLを構築
+        // キーワード・タグ・カテゴリー検索URLを構築
         // 複数選択の場合はカンマ区切りで連結
         const params = [];
+
+        if (keyword !== '') {
+            // WordPress標準のサイト内検索パラメータ
+            params.push('s=' + encodeURIComponent(keyword));
+        }
 
         if (selectedTags.length > 0) {
             params.push('tag=' + encodeURIComponent(selectedTags.join(',')));
@@ -258,6 +274,7 @@
         selectedTags = [];
         selectedCategories = [];
         $('.ats-tag').removeClass('selected');
+        $('#ats-keyword-input').val('');
         updateSearchButton();
     }
     
