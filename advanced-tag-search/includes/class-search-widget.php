@@ -113,6 +113,18 @@ class ATS_Search_Widget {
             $tag_slug_map[$wp_tag['name']] = $wp_tag['slug'];
         }
 
+        // モーダル内ブロックの表示順（未設定の場合は既定順）
+        $default_order = array('keyword', 'tags', 'category');
+        $section_order = isset($settings['section_order']) && is_array($settings['section_order'])
+            ? array_values(array_intersect($settings['section_order'], $default_order))
+            : $default_order;
+        // 欠けているブロックは末尾に補完
+        foreach ($default_order as $section_key) {
+            if (!in_array($section_key, $section_order, true)) {
+                $section_order[] = $section_key;
+            }
+        }
+
         ob_start();
         ?>
         <div id="ats-modal-overlay" class="ats-modal-overlay" style="display: none;">
@@ -128,47 +140,53 @@ class ATS_Search_Widget {
                 </div>
                 
                 <div class="ats-modal-body">
-                    <div class="ats-tag-category ats-keyword-search">
-                        <h3 class="ats-category-title"><?php _e('キーワードで検索', 'advanced-tag-search'); ?></h3>
-                        <div class="ats-keyword-search-box">
-                            <input type="text"
-                                   id="ats-keyword-input"
-                                   class="ats-keyword-input"
-                                   placeholder="<?php esc_attr_e('キーワードを入力（サイト内検索）', 'advanced-tag-search'); ?>">
-                        </div>
-                    </div>
+                    <?php foreach ($section_order as $section_key): ?>
 
-                    <?php foreach ($categories as $category_key => $category_data): ?>
-                        <div class="ats-tag-category">
-                            <h3 class="ats-category-title"><?php echo esc_html($category_data['title']); ?></h3>
-                            <div class="ats-tag-list">
-                                <?php foreach ($category_data['tags'] as $tag): ?>
-                                    <?php $tag_value = isset($tag_slug_map[$tag]) ? $tag_slug_map[$tag] : $tag; ?>
-                                    <button type="button"
-                                            class="ats-tag"
-                                            data-tag="<?php echo esc_attr($tag_value); ?>"
-                                            data-category="<?php echo esc_attr($category_key); ?>">
-                                        #<?php echo esc_html($tag); ?>
-                                    </button>
-                                <?php endforeach; ?>
+                        <?php if ('keyword' === $section_key): ?>
+                            <div class="ats-tag-category ats-keyword-search">
+                                <h3 class="ats-category-title"><?php _e('キーワードで検索', 'advanced-tag-search'); ?></h3>
+                                <div class="ats-keyword-search-box">
+                                    <input type="text"
+                                           id="ats-keyword-input"
+                                           class="ats-keyword-input"
+                                           placeholder="<?php esc_attr_e('キーワードを入力（サイト内検索）', 'advanced-tag-search'); ?>">
+                                </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
 
-                    <?php if (!empty($wp_categories)): ?>
-                    <div class="ats-tag-category ats-wp-category-filter">
-                        <h3 class="ats-category-title"><?php _e('カテゴリーから絞り込む', 'advanced-tag-search'); ?></h3>
-                        <div class="ats-tag-list">
-                            <?php foreach ($wp_categories as $wp_category): ?>
-                                <button type="button"
-                                        class="ats-tag ats-category-filter"
-                                        data-category-slug="<?php echo esc_attr($wp_category['slug']); ?>">
-                                    <?php echo esc_html($wp_category['name']); ?>
-                                </button>
+                        <?php elseif ('tags' === $section_key): ?>
+                            <?php foreach ($categories as $category_key => $category_data): ?>
+                                <div class="ats-tag-category">
+                                    <h3 class="ats-category-title"><?php echo esc_html($category_data['title']); ?></h3>
+                                    <div class="ats-tag-list">
+                                        <?php foreach ($category_data['tags'] as $tag): ?>
+                                            <?php $tag_value = isset($tag_slug_map[$tag]) ? $tag_slug_map[$tag] : $tag; ?>
+                                            <button type="button"
+                                                    class="ats-tag"
+                                                    data-tag="<?php echo esc_attr($tag_value); ?>"
+                                                    data-category="<?php echo esc_attr($category_key); ?>">
+                                                #<?php echo esc_html($tag); ?>
+                                            </button>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
                             <?php endforeach; ?>
-                        </div>
-                    </div>
-                    <?php endif; ?>
+
+                        <?php elseif ('category' === $section_key && !empty($wp_categories)): ?>
+                            <div class="ats-tag-category ats-wp-category-filter">
+                                <h3 class="ats-category-title"><?php _e('カテゴリーから絞り込む', 'advanced-tag-search'); ?></h3>
+                                <div class="ats-tag-list">
+                                    <?php foreach ($wp_categories as $wp_category): ?>
+                                        <button type="button"
+                                                class="ats-tag ats-category-filter"
+                                                data-category-slug="<?php echo esc_attr($wp_category['slug']); ?>">
+                                            <?php echo esc_html($wp_category['name']); ?>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                    <?php endforeach; ?>
                 </div>
 
                 <div class="ats-modal-footer">

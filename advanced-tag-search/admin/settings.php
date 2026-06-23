@@ -41,7 +41,23 @@ function ats_render_settings_page() {
     $quick_link_candidates = array_values(array_filter($all_wp_categories, function ($wp_category) {
         return !empty($wp_category['count']);
     }));
-    
+
+    // モーダル内ブロックの表示順
+    $section_labels = array(
+        'keyword'  => __('キーワードで検索', 'advanced-tag-search'),
+        'tags'     => __('タグから絞り込む（タグカテゴリー）', 'advanced-tag-search'),
+        'category' => __('カテゴリーから絞り込む', 'advanced-tag-search'),
+    );
+    $default_order = array('keyword', 'tags', 'category');
+    $section_order = isset($settings['section_order']) && is_array($settings['section_order'])
+        ? array_values(array_intersect($settings['section_order'], $default_order))
+        : $default_order;
+    foreach ($default_order as $section_key) {
+        if (!in_array($section_key, $section_order, true)) {
+            $section_order[] = $section_key;
+        }
+    }
+
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -145,8 +161,26 @@ function ats_render_settings_page() {
                     </td>
                 </tr>
             </table>
-            
-            
+
+
+            <h2><?php _e('表示順設定', 'advanced-tag-search'); ?></h2>
+            <p><?php _e('検索モーダル内のブロック（キーワード／タグ／カテゴリー）の表示順を変更できます。▲▼ボタンで並び替えてください。', 'advanced-tag-search'); ?></p>
+
+            <ul id="ats-section-order" class="ats-section-order">
+                <?php foreach ($section_order as $section_key): ?>
+                    <li class="ats-section-order-item">
+                        <span class="ats-section-order-handle dashicons dashicons-menu"></span>
+                        <span class="ats-section-order-label"><?php echo esc_html($section_labels[$section_key]); ?></span>
+                        <span class="ats-section-order-controls">
+                            <button type="button" class="button ats-order-up" aria-label="<?php esc_attr_e('上へ', 'advanced-tag-search'); ?>">▲</button>
+                            <button type="button" class="button ats-order-down" aria-label="<?php esc_attr_e('下へ', 'advanced-tag-search'); ?>">▼</button>
+                        </span>
+                        <input type="hidden" name="ats_section_order[]" value="<?php echo esc_attr($section_key); ?>">
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+
             <h2><?php _e('タグカテゴリー設定', 'advanced-tag-search'); ?></h2>
             <p><?php _e('各カテゴリーに表示するタグを、WordPressに登録済みのタグから選択してください。「カテゴリーを追加」ボタンで項目を増やせます。', 'advanced-tag-search'); ?></p>
 
@@ -398,6 +432,24 @@ function ats_render_settings_page() {
         $(document).on('click', '.ats-remove-category', function() {
             $(this).closest('.ats-category-block').remove();
         });
+
+        // 表示順: 上へ
+        $(document).on('click', '.ats-order-up', function() {
+            var $item = $(this).closest('.ats-section-order-item');
+            var $prev = $item.prev('.ats-section-order-item');
+            if ($prev.length) {
+                $prev.before($item);
+            }
+        });
+
+        // 表示順: 下へ
+        $(document).on('click', '.ats-order-down', function() {
+            var $item = $(this).closest('.ats-section-order-item');
+            var $next = $item.next('.ats-section-order-item');
+            if ($next.length) {
+                $next.after($item);
+            }
+        });
     });
     </script>
     <?php
@@ -478,6 +530,24 @@ function ats_save_settings() {
         $quick_link_categories = array_map('sanitize_title', $_POST['ats_quick_link_categories']);
     }
     $settings['quick_link_categories'] = $quick_link_categories;
+
+    // モーダル内ブロックの表示順を保存（既知キーのみ・重複除去・欠けは末尾補完）
+    $allowed_sections = array('keyword', 'tags', 'category');
+    $section_order = array();
+    if (isset($_POST['ats_section_order']) && is_array($_POST['ats_section_order'])) {
+        foreach ($_POST['ats_section_order'] as $section_key) {
+            $section_key = sanitize_key($section_key);
+            if (in_array($section_key, $allowed_sections, true) && !in_array($section_key, $section_order, true)) {
+                $section_order[] = $section_key;
+            }
+        }
+    }
+    foreach ($allowed_sections as $section_key) {
+        if (!in_array($section_key, $section_order, true)) {
+            $section_order[] = $section_key;
+        }
+    }
+    $settings['section_order'] = $section_order;
 
     update_option('ats_settings', $settings);
     
