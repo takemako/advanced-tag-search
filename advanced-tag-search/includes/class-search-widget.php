@@ -107,10 +107,13 @@ class ATS_Search_Widget {
             }));
         }
 
-        // タグ名→スラッグの対応表を作成（検索URLにはスラッグを使用）
-        $tag_slug_map = array();
+        // タグ名→スラッグ、タグ名→記事数の対応表を作成
+        // （検索URLにはスラッグを使用。記事数0のタグは選択不可にする）
+        $tag_slug_map  = array();
+        $tag_count_map = array();
         foreach ($tag_manager->get_all_wp_tags() as $wp_tag) {
-            $tag_slug_map[$wp_tag['name']] = $wp_tag['slug'];
+            $tag_slug_map[$wp_tag['name']]  = $wp_tag['slug'];
+            $tag_count_map[$wp_tag['name']] = (int) $wp_tag['count'];
         }
 
         // モーダル内ブロックの表示順（未設定の場合は既定順）
@@ -159,11 +162,19 @@ class ATS_Search_Widget {
                                     <h3 class="ats-category-title"><?php echo esc_html($category_data['title']); ?></h3>
                                     <div class="ats-tag-list">
                                         <?php foreach ($category_data['tags'] as $tag): ?>
-                                            <?php $tag_value = isset($tag_slug_map[$tag]) ? $tag_slug_map[$tag] : $tag; ?>
+                                            <?php
+                                            $tag_value = isset($tag_slug_map[$tag]) ? $tag_slug_map[$tag] : $tag;
+                                            // 記事が0件のタグ（または未登録のタグ）は選択不可
+                                            $tag_count   = isset($tag_count_map[$tag]) ? $tag_count_map[$tag] : 0;
+                                            $is_disabled = $tag_count < 1;
+                                            ?>
                                             <button type="button"
-                                                    class="ats-tag"
+                                                    class="ats-tag<?php echo $is_disabled ? ' ats-tag-disabled' : ''; ?>"
                                                     data-tag="<?php echo esc_attr($tag_value); ?>"
-                                                    data-category="<?php echo esc_attr($category_key); ?>">
+                                                    data-category="<?php echo esc_attr($category_key); ?>"
+                                                    <?php disabled($is_disabled); ?>
+                                                    aria-disabled="<?php echo $is_disabled ? 'true' : 'false'; ?>"
+                                                    title="<?php echo $is_disabled ? esc_attr__('このタグに記事はありません', 'advanced-tag-search') : ''; ?>">
                                                 #<?php echo esc_html($tag); ?>
                                             </button>
                                         <?php endforeach; ?>
@@ -176,9 +187,13 @@ class ATS_Search_Widget {
                                 <h3 class="ats-category-title"><?php _e('カテゴリーから絞り込む', 'advanced-tag-search'); ?></h3>
                                 <div class="ats-tag-list">
                                     <?php foreach ($wp_categories as $wp_category): ?>
+                                        <?php $is_cat_disabled = empty($wp_category['count']); ?>
                                         <button type="button"
-                                                class="ats-tag ats-category-filter"
-                                                data-category-slug="<?php echo esc_attr($wp_category['slug']); ?>">
+                                                class="ats-tag ats-category-filter<?php echo $is_cat_disabled ? ' ats-tag-disabled' : ''; ?>"
+                                                data-category-slug="<?php echo esc_attr($wp_category['slug']); ?>"
+                                                <?php disabled($is_cat_disabled); ?>
+                                                aria-disabled="<?php echo $is_cat_disabled ? 'true' : 'false'; ?>"
+                                                title="<?php echo $is_cat_disabled ? esc_attr__('このカテゴリーに記事はありません', 'advanced-tag-search') : ''; ?>">
                                             <?php echo esc_html($wp_category['name']); ?>
                                         </button>
                                     <?php endforeach; ?>
