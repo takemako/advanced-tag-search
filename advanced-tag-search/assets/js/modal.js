@@ -58,13 +58,13 @@
      * タグ選択の初期化
      */
     function initTagSelection() {
-        // タグの選択(カテゴリー絞り込みボタンは除外)
-        $(document).on('click', '.ats-tag:not(.ats-category-filter)', function() {
+        // タグの選択(カテゴリー絞り込みボタンと無効タグは除外)
+        $(document).on('click', '.ats-tag:not(.ats-category-filter):not(.ats-tag-disabled)', function() {
             toggleTag($(this));
         });
 
-        // カテゴリーの選択
-        $(document).on('click', '.ats-category-filter', function() {
+        // カテゴリーの選択（無効カテゴリーは除外）
+        $(document).on('click', '.ats-category-filter:not(.ats-tag-disabled)', function() {
             toggleCategory($(this));
         });
     }
