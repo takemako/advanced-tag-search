@@ -97,15 +97,6 @@ class ATS_Search_Widget {
         
         $tag_manager = new ATS_Tag_Manager();
         $categories = $tag_manager->get_tag_categories();
-        $wp_categories = $tag_manager->get_all_wp_categories();
-
-        // 管理画面で選択されたカテゴリーのみ表示（未設定の場合は全カテゴリー表示）
-        if (isset($settings['filter_categories']) && is_array($settings['filter_categories'])) {
-            $selected_slugs = $settings['filter_categories'];
-            $wp_categories = array_values(array_filter($wp_categories, function ($wp_category) use ($selected_slugs) {
-                return in_array($wp_category['slug'], $selected_slugs, true);
-            }));
-        }
 
         // タグ名→スラッグ、タグ名→記事数の対応表を作成
         // （検索URLにはスラッグを使用。記事数0のタグは選択不可にする）
@@ -117,7 +108,7 @@ class ATS_Search_Widget {
         }
 
         // モーダル内ブロックの表示順（未設定の場合は既定順）
-        $default_order = array('keyword', 'tags', 'category');
+        $default_order = array('keyword', 'tags');
         $section_order = isset($settings['section_order']) && is_array($settings['section_order'])
             ? array_values(array_intersect($settings['section_order'], $default_order))
             : $default_order;
@@ -182,23 +173,6 @@ class ATS_Search_Widget {
                                 </div>
                             <?php endforeach; ?>
 
-                        <?php elseif ('category' === $section_key && !empty($wp_categories)): ?>
-                            <div class="ats-tag-category ats-wp-category-filter">
-                                <h3 class="ats-category-title"><?php _e('カテゴリーから絞り込む', 'advanced-tag-search'); ?></h3>
-                                <div class="ats-tag-list">
-                                    <?php foreach ($wp_categories as $wp_category): ?>
-                                        <?php $is_cat_disabled = empty($wp_category['count']); ?>
-                                        <button type="button"
-                                                class="ats-tag ats-category-filter<?php echo $is_cat_disabled ? ' ats-tag-disabled' : ''; ?>"
-                                                data-category-slug="<?php echo esc_attr($wp_category['slug']); ?>"
-                                                <?php disabled($is_cat_disabled); ?>
-                                                aria-disabled="<?php echo $is_cat_disabled ? 'true' : 'false'; ?>"
-                                                title="<?php echo $is_cat_disabled ? esc_attr__('このカテゴリーに記事はありません', 'advanced-tag-search') : ''; ?>">
-                                            <?php echo esc_html($wp_category['name']); ?>
-                                        </button>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
                         <?php endif; ?>
 
                     <?php endforeach; ?>

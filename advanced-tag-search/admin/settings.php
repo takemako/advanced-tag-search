@@ -29,10 +29,6 @@ function ats_render_settings_page() {
     $tag_categories = $tag_manager->get_tag_categories();
     $all_wp_tags = $tag_manager->get_all_wp_tags();
     $all_wp_categories = $tag_manager->get_all_wp_categories();
-    // モーダルに表示するカテゴリーの選択（未設定の場合はnull＝全カテゴリー表示）
-    $filter_categories = isset($settings['filter_categories']) && is_array($settings['filter_categories'])
-        ? $settings['filter_categories']
-        : null;
     // クイックリンクに表示するカテゴリーの選択（未設定の場合はnull＝投稿のある全カテゴリー表示）
     $quick_link_categories = isset($settings['quick_link_categories']) && is_array($settings['quick_link_categories'])
         ? $settings['quick_link_categories']
@@ -46,9 +42,8 @@ function ats_render_settings_page() {
     $section_labels = array(
         'keyword'  => __('キーワードで検索', 'advanced-tag-search'),
         'tags'     => __('タグから絞り込む（タグカテゴリー）', 'advanced-tag-search'),
-        'category' => __('カテゴリーから絞り込む', 'advanced-tag-search'),
     );
-    $default_order = array('keyword', 'tags', 'category');
+    $default_order = array('keyword', 'tags');
     $section_order = isset($settings['section_order']) && is_array($settings['section_order'])
         ? array_values(array_intersect($settings['section_order'], $default_order))
         : $default_order;
@@ -216,54 +211,6 @@ function ats_render_settings_page() {
                     var atsCategoryIndex = <?php echo intval($cat_index); ?>;
                 </script>
             <?php endif; ?>
-            
-            <h2><?php _e('カテゴリー絞り込み設定', 'advanced-tag-search'); ?></h2>
-            <p><?php _e('検索モーダルの「カテゴリーから絞り込む」に表示するカテゴリーを選択してください。', 'advanced-tag-search'); ?></p>
-
-            <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label>
-                            <?php _e('カテゴリー選択', 'advanced-tag-search'); ?>
-                        </label>
-                    </th>
-                    <td>
-                        <?php if (empty($all_wp_categories)): ?>
-                            <p class="description">
-                                <?php
-                                printf(
-                                    wp_kses(
-                                        __('WordPressにカテゴリーが登録されていません。先に<a href="%s">カテゴリーを作成</a>してください。', 'advanced-tag-search'),
-                                        array('a' => array('href' => array()))
-                                    ),
-                                    esc_url(admin_url('edit-tags.php?taxonomy=category'))
-                                );
-                                ?>
-                            </p>
-                        <?php else: ?>
-                            <p class="ats-checkbox-toolbar">
-                                <button type="button" class="button button-small ats-select-all"><?php _e('全選択', 'advanced-tag-search'); ?></button>
-                                <button type="button" class="button button-small ats-deselect-all"><?php _e('全解除', 'advanced-tag-search'); ?></button>
-                            </p>
-                            <div class="ats-tag-checkbox-list">
-                                <?php foreach ($all_wp_categories as $wp_category): ?>
-                                    <label class="ats-tag-checkbox">
-                                        <input type="checkbox"
-                                               name="ats_filter_categories[]"
-                                               value="<?php echo esc_attr($wp_category['slug']); ?>"
-                                               <?php checked(null === $filter_categories || in_array($wp_category['slug'], $filter_categories, true)); ?>>
-                                        <?php echo esc_html($wp_category['name']); ?>
-                                        <span class="ats-tag-count">(<?php echo intval($wp_category['count']); ?>)</span>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
-                            <p class="description">
-                                <?php _e('モーダルに表示するカテゴリーにチェックを入れてください。すべて未選択の場合はカテゴリー絞り込みは表示されません。', 'advanced-tag-search'); ?>
-                            </p>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            </table>
 
             <h2><?php _e('クイックリンク設定', 'advanced-tag-search'); ?></h2>
             <p><?php _e('検索窓の下に表示するクイックリンクを、ブログのカテゴリーから選択してください。リンク先は各カテゴリーのアーカイブページになります。', 'advanced-tag-search'); ?></p>
@@ -516,13 +463,6 @@ function ats_save_settings() {
         'search_icon_color' => sanitize_hex_color($_POST['ats_search_icon_color'] ?? '#666666'),
         'button_color' => sanitize_hex_color($_POST['ats_button_color'] ?? '#2196F3'),
     );
-
-    // モーダルに表示するカテゴリーの保存（チェックされたスラッグのみ。未チェックなら空配列）
-    $filter_categories = array();
-    if (isset($_POST['ats_filter_categories']) && is_array($_POST['ats_filter_categories'])) {
-        $filter_categories = array_map('sanitize_title', $_POST['ats_filter_categories']);
-    }
-    $settings['filter_categories'] = $filter_categories;
 
     // クイックリンクに表示するカテゴリーの保存（チェックされたスラッグのみ。未チェックなら空配列）
     $quick_link_categories = array();
