@@ -124,21 +124,25 @@
     }
     
     /**
-     * タグの選択/解除を切り替え
+     * タグの選択/解除を切り替え（単一選択）
+     *
+     * すでに選択されているタグをクリック → 解除
+     * 別のタグをクリック → 既存の選択を解除し、新しいタグを選択
      */
     function toggleTag($tagElement) {
         const tagName = $tagElement.data('tag');
-        
+
         if ($tagElement.hasClass('selected')) {
             // 選択解除
             $tagElement.removeClass('selected');
-            selectedTags = selectedTags.filter(tag => tag !== tagName);
+            selectedTags = [];
         } else {
-            // 選択
+            // 既存の選択を全て解除し、このタグだけを選択
+            $('.ats-tag.selected').removeClass('selected');
             $tagElement.addClass('selected');
-            selectedTags.push(tagName);
+            selectedTags = [tagName];
         }
-        
+
         // 検索ボタンの状態を更新
         updateSearchButton();
     }

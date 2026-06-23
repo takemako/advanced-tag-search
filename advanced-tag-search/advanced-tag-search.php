@@ -3,7 +3,7 @@
  * Plugin Name: Advanced Tag Search
  * Plugin URI: https://example.com/advanced-tag-search
  * Description: 高度な検索機能を提供するプラグイン。タグやカテゴリーでの絞り込み検索が可能です。
- * Version: 1.8.4
+ * Version: 1.8.5
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Makoto Takei
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // プラグインの定数定義
-define('ATS_VERSION', '1.8.4');
+define('ATS_VERSION', '1.8.5');
 define('ATS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ATS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ATS_PLUGIN_BASENAME', plugin_basename(__FILE__));
