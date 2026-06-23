@@ -10,6 +10,10 @@
 
     // 選択されたカテゴリー(スラッグ)を保持する配列
     let selectedCategories = [];
+
+    // 記事数取得用（デバウンス・リクエスト管理）
+    let countTimer = null;
+    let countXhr = null;
     
     /**
      * 初期化処理
@@ -79,6 +83,11 @@
                 e.preventDefault();
                 performSearch();
             }
+        });
+
+        // キーワード入力中も一致する記事数を更新
+        $(document).on('input', '#ats-keyword-input', function() {
+            updateSearchButton();
         });
     }
     
@@ -156,20 +165,68 @@
 
     /**
      * 検索ボタンの状態を更新
+     *
+     * 条件が選択されている場合は、一致する記事数を取得してボタンに表示します。
      */
     function updateSearchButton() {
         const $submitButton = $('#ats-search-submit');
-        const totalSelected = selectedTags.length + selectedCategories.length;
+        const keyword = ($('#ats-keyword-input').val() || '').trim();
+        const hasCondition = selectedTags.length > 0 || selectedCategories.length > 0 || keyword !== '';
 
         $submitButton.prop('disabled', false);
 
-        if (totalSelected > 0) {
-            $submitButton.text('選択した条件で絞り込む (' + totalSelected + ')');
-        } else {
+        if (!hasCondition) {
             $submitButton.text('選択したタグで絞り込む');
+            return;
         }
+
+        // 一致する記事数を取得して表示
+        fetchPostCount(keyword);
     }
-    
+
+    /**
+     * 選択条件に一致する記事数を取得してボタンに反映（デバウンス）
+     */
+    function fetchPostCount(keyword) {
+        const $submitButton = $('#ats-search-submit');
+
+        // 取得中の表示
+        $submitButton.text('件数を確認中...');
+
+        clearTimeout(countTimer);
+        countTimer = setTimeout(function() {
+            if (countXhr) {
+                countXhr.abort();
+            }
+
+            countXhr = $.ajax({
+                url: atsAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'ats_get_post_count',
+                    nonce: atsAjax.nonce,
+                    tags: selectedTags,
+                    categories: selectedCategories,
+                    keyword: keyword
+                },
+                success: function(response) {
+                    if (response && response.success) {
+                        $submitButton.text('選択した条件で絞り込む (' + response.data.count + '件)');
+                    } else {
+                        $submitButton.text('選択した条件で絞り込む');
+                    }
+                },
+                error: function(jqXHR, textStatus) {
+                    // 連続選択でabortした場合は次のリクエストに任せる
+                    if (textStatus !== 'abort') {
+                        $submitButton.text('選択した条件で絞り込む');
+                    }
+                }
+            });
+        }, 300);
+    }
+
+
     /**
      * 検索を実行
      */
