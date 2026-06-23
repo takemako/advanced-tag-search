@@ -72,6 +72,8 @@ class Advanced_Tag_Search {
         add_action('init', array($this, 'register_shortcodes'));
         add_action('wp_ajax_ats_get_tags', array($this, 'ajax_get_tags'));
         add_action('wp_ajax_nopriv_ats_get_tags', array($this, 'ajax_get_tags'));
+        add_action('wp_ajax_ats_get_post_count', array($this, 'ajax_get_post_count'));
+        add_action('wp_ajax_nopriv_ats_get_post_count', array($this, 'ajax_get_post_count'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // タグ検索のクエリフィルター
@@ -210,13 +212,72 @@ class Advanced_Tag_Search {
      */
     public function ajax_get_tags() {
         check_ajax_referer('ats-nonce', 'nonce');
-        
+
         $tag_manager = new ATS_Tag_Manager();
         $tags = $tag_manager->get_tag_categories();
-        
+
         wp_send_json_success($tags);
     }
-    
+
+    /**
+     * Ajax: 選択した条件に一致する記事数を取得
+     *
+     * 選択中のタグ・カテゴリー（AND）とキーワードで一致する公開記事数を返します。
+     */
+    public function ajax_get_post_count() {
+        check_ajax_referer('ats-nonce', 'nonce');
+
+        $tags = isset($_POST['tags']) ? (array) wp_unslash($_POST['tags']) : array();
+        $cats = isset($_POST['categories']) ? (array) wp_unslash($_POST['categories']) : array();
+        $keyword = isset($_POST['keyword']) ? sanitize_text_field(wp_unslash($_POST['keyword'])) : '';
+
+        // スラッグを文字列としてサニタイズ（スラッグ自体は変換しない）
+        $tags = array_filter(array_map('sanitize_text_field', $tags));
+        $cats = array_filter(array_map('sanitize_text_field', $cats));
+
+        $args = array(
+            'post_type'           => 'post',
+            'post_status'         => 'publish',
+            'posts_per_page'      => 1,
+            'fields'              => 'ids',
+            'ignore_sticky_posts' => true,
+            'no_found_rows'       => false,
+        );
+
+        // タグ・カテゴリーはAND条件（実際の検索と同じ挙動）
+        $tax_query = array('relation' => 'AND');
+
+        if (!empty($tags)) {
+            $tax_query[] = array(
+                'taxonomy' => 'post_tag',
+                'field'    => 'slug',
+                'terms'    => $tags,
+                'operator' => 'AND',
+            );
+        }
+
+        if (!empty($cats)) {
+            $tax_query[] = array(
+                'taxonomy' => 'category',
+                'field'    => 'slug',
+                'terms'    => $cats,
+                'operator' => 'AND',
+            );
+        }
+
+        if (count($tax_query) > 1) {
+            $args['tax_query'] = $tax_query;
+        }
+
+        if ('' !== $keyword) {
+            $args['s'] = $keyword;
+        }
+
+        $query = new WP_Query($args);
+
+        wp_send_json_success(array('count' => (int) $query->found_posts));
+    }
+
     /**
      * 管理メニューの追加
      */
