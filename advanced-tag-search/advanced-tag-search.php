@@ -3,7 +3,7 @@
  * Plugin Name: Advanced Tag Search
  * Plugin URI: https://example.com/advanced-tag-search
  * Description: 高度な検索機能を提供するプラグイン。タグやカテゴリーでの絞り込み検索が可能です。
- * Version: 1.8.1
+ * Version: 1.8.2
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Makoto Takei
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // プラグインの定数定義
-define('ATS_VERSION', '1.8.1');
+define('ATS_VERSION', '1.8.2');
 define('ATS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ATS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ATS_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -222,7 +222,8 @@ class Advanced_Tag_Search {
     /**
      * Ajax: 選択した条件に一致する記事数を取得
      *
-     * 選択中のタグ・カテゴリー（AND）とキーワードで一致する公開記事数を返します。
+     * 選択中のタグ・カテゴリー（同種はOR、種別をまたぐとAND）とキーワードで
+     * 一致する公開記事数を返します。
      */
     public function ajax_get_post_count() {
         check_ajax_referer('ats-nonce', 'nonce');
@@ -244,7 +245,7 @@ class Advanced_Tag_Search {
             'no_found_rows'       => false,
         );
 
-        // タグ・カテゴリーはAND条件（実際の検索と同じ挙動）
+        // 同じ種類は OR、タグとカテゴリーをまたぐ場合は AND（実際の検索と同じ挙動）
         $tax_query = array('relation' => 'AND');
 
         if (!empty($tags)) {
@@ -252,7 +253,7 @@ class Advanced_Tag_Search {
                 'taxonomy' => 'post_tag',
                 'field'    => 'slug',
                 'terms'    => $tags,
-                'operator' => 'AND',
+                'operator' => 'IN',
             );
         }
 
@@ -261,7 +262,7 @@ class Advanced_Tag_Search {
                 'taxonomy' => 'category',
                 'field'    => 'slug',
                 'terms'    => $cats,
-                'operator' => 'AND',
+                'operator' => 'IN',
             );
         }
 
@@ -310,10 +311,10 @@ class Advanced_Tag_Search {
             return;
         }
 
-        // タグ・カテゴリーをタクソノミークエリ（スラッグ・AND）で絞り込む。
+        // タグ・カテゴリーをタクソノミークエリ（スラッグ）で絞り込む。
         // 件数取得Ajaxと同じ方式に統一し、日本語スラッグでも確実に一致させる。
-        // （WordPress標準の ?tag= 処理はスラッグを再サニタイズして日本語スラッグを
-        // 壊すため、ここでは使わず tax_query を直接構築する）
+        // 同じ種類（タグ同士／カテゴリー同士）は OR（いずれかに一致＝まとめて表示）、
+        // タグとカテゴリーをまたぐ場合は AND で絞り込む。
         $tax_query = array();
 
         if ($has_tag) {
@@ -324,7 +325,7 @@ class Advanced_Tag_Search {
                     'taxonomy' => 'post_tag',
                     'field'    => 'slug',
                     'terms'    => $tags,
-                    'operator' => 'AND',
+                    'operator' => 'IN',
                 );
                 // WordPress標準のタグ処理を無効化（スラッグ不一致による空アーカイブを防ぐ）
                 $query->set('tag', '');
@@ -340,7 +341,7 @@ class Advanced_Tag_Search {
                     'taxonomy' => 'category',
                     'field'    => 'slug',
                     'terms'    => $cats,
-                    'operator' => 'AND',
+                    'operator' => 'IN',
                 );
             }
         }
